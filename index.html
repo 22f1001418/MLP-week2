@@ -1,0 +1,1386 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MLP Week 2 Notes</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: sticky index on the left, one reading column on the right. Every part opens with a heading, then short notes, then a raised panel you can play with. Black ground, maroon for structure, rose for the thing to look at. */
+:root{
+  --bg:#0a0607;
+  --surface:#130c0e;
+  --raised:#1c1115;
+  --line:#3a1c24;
+  --line-soft:#26141a;
+  --fg:#f4ece9;
+  --muted:#b6a3a7;
+  --dim:#7f6c70;
+  --maroon:#7a1230;
+  --maroon-2:#a31a3e;
+  --rose:#e8566f;
+  --rose-soft:rgba(232,86,111,.16);
+  --amber:#e3b055;
+  --amber-soft:rgba(227,176,85,.16);
+  --ok:#6cc39b;
+  --ink:#d9c7cb;
+  --display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --body:"Instrument Sans","Segoe UI",system-ui,-apple-system,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;background:var(--bg);color:var(--fg);
+  font:400 16px/1.6 var(--body);-webkit-font-smoothing:antialiased;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:40}
+a{color:var(--rose);text-underline-offset:3px}
+:focus-visible{outline:2px solid var(--rose);outline-offset:2px}
+.shell{display:grid;grid-template-columns:200px minmax(0,1fr);gap:56px;max-width:1160px;margin:0 auto;padding-block:32px 96px}
+nav.index{position:sticky;top:calc(env(safe-area-inset-top,0px) + 24px);align-self:start;max-height:calc(100vh - 48px);overflow:auto;display:flex;flex-direction:column;gap:2px;font-size:14px}
+nav.index .brand{font:700 15px var(--display);letter-spacing:.02em;margin-bottom:14px;color:var(--fg)}
+nav.index .brand span{color:var(--rose)}
+nav.index a{display:flex;gap:10px;text-decoration:none;color:var(--muted);padding:6px 10px;border-radius:6px;white-space:nowrap}
+nav.index a i{font:500 11px var(--mono);color:var(--dim);font-style:normal;min-width:18px;padding-top:2px}
+nav.index a:hover{color:var(--fg);background:var(--surface)}
+nav.index a.on{color:var(--fg);background:var(--raised);box-shadow:inset 2px 0 0 var(--maroon-2)}
+nav.index a.on i{color:var(--rose)}
+main{min-width:0}
+.hero{position:relative;padding:8px 0 40px}
+.hero::before{content:"";position:absolute;inset:-60px 0 auto 0;height:320px;background:radial-gradient(520px 220px at 12% 30%,rgba(163,26,62,.34),transparent 70%);pointer-events:none;z-index:-1}
+.eyebrow{font:500 12px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--rose);margin:0 0 10px}
+h1,h2,h3,h4{font-family:var(--display);text-wrap:balance;margin:0}
+h1{font-weight:800;font-size:clamp(2.2rem,5.4vw,3.6rem);line-height:1.04;letter-spacing:-.02em;max-width:16ch}
+h2{font-weight:700;font-size:clamp(1.7rem,3.2vw,2.35rem);line-height:1.1;letter-spacing:-.015em}
+h3{font-weight:600;font-size:1.15rem;line-height:1.25}
+h4{font-weight:600;font-size:1rem}
+p{margin:0 0 12px;max-width:66ch}
+.lede{color:var(--muted);font-size:1.1rem;margin-top:10px}
+.flow{display:flex;flex-wrap:wrap;gap:8px;margin-top:26px;align-items:center}
+.flow a{font:500 13px var(--mono);text-decoration:none;color:var(--fg);background:var(--raised);border:1px solid var(--line);padding:6px 12px;border-radius:999px}
+.flow a:hover{border-color:var(--maroon-2);background:var(--maroon)}
+.flow span{color:var(--dim);font-family:var(--mono)}
+.part{padding-top:76px;scroll-margin-top:24px}
+.part>header{margin-bottom:26px}
+.part>header::after{content:"";display:block;width:56px;height:3px;background:var(--maroon-2);margin-top:18px;border-radius:2px}
+.sub{margin:34px 0 12px}
+ul.tight{margin:0 0 14px;padding-left:20px;max-width:66ch}
+ul.tight li{margin:5px 0}
+ul.tight li::marker{color:var(--maroon-2)}
+code{font:500 .86em var(--mono);background:var(--raised);color:#f6c9d2;padding:2px 6px;border-radius:5px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin:14px 0 18px}
+.card{background:var(--surface);border:1px solid var(--line-soft);border-radius:10px;padding:16px;min-width:0}
+.card h4{margin-bottom:6px}
+.card p{font-size:14.5px;color:var(--muted);margin:0}
+.card .kick{font:500 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--rose);margin-bottom:6px}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.tag{font:500 12px var(--mono);background:var(--raised);border:1px solid var(--line);color:var(--ink);padding:3px 9px;border-radius:999px}
+.tag.hot{background:var(--maroon);border-color:var(--maroon-2);color:#fff}
+.panel{background:linear-gradient(180deg,var(--raised),var(--surface) 60%);border:1px solid var(--line);border-radius:14px;padding:20px;margin:18px 0 22px;box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 14px 34px rgba(0,0,0,.5);min-width:0}
+.ptitle{display:flex;align-items:baseline;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+.ptitle b{font:500 11px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--rose);background:var(--rose-soft);padding:3px 8px;border-radius:5px}
+.row{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center;margin:0 0 14px}
+.row label{font-size:13.5px;color:var(--muted);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.row label{max-width:100%}
+.row output{font:500 13px var(--mono);color:var(--fg);min-width:3ch}
+.seg{display:inline-flex;flex-wrap:wrap;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:3px;gap:2px}
+.seg button{font:500 13px var(--body);color:var(--muted);background:transparent;border:0;padding:6px 12px;border-radius:6px;cursor:pointer}
+.seg button:hover{color:var(--fg)}
+.seg button.on{background:var(--maroon-2);color:#fff}
+.btn{font:500 13.5px var(--body);color:var(--fg);background:var(--maroon);border:1px solid var(--maroon-2);padding:7px 14px;border-radius:8px;cursor:pointer}
+.btn:hover{background:var(--maroon-2)}
+.btn.ghost{background:transparent;border-color:var(--line)}
+#en-in{width:min(440px,calc(100vw - 80px))}
+#sp-in{width:min(260px,calc(100vw - 120px))}
+input[type=range]{accent-color:var(--maroon-2);width:min(240px,60vw)}
+input[type=text],input[type=number],select{background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:7px;padding:7px 10px;font:500 14px var(--mono);max-width:100%}
+.tw{overflow-x:auto;max-width:100%}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th{font:500 11.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:8px 10px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+td.m{font-family:var(--mono);font-size:13px;color:#f6c9d2}
+.mat{width:auto;margin:4px 0}
+.mat td,.mat th{font:500 13.5px var(--mono);text-align:center;padding:6px 12px;border:1px solid var(--line);font-variant-numeric:tabular-nums;color:var(--fg);letter-spacing:0;text-transform:none;background:var(--bg)}
+.mat th{color:var(--muted);background:var(--surface);font-size:11.5px}
+.mat td.fill{background:var(--rose-soft);color:#ffd9e0;font-weight:600;border-color:var(--maroon-2)}
+.mat td.nan{color:var(--rose)}
+.mat td.str{background:var(--amber-soft);color:var(--amber)}
+.mat td.sent{background:repeating-linear-gradient(45deg,var(--amber-soft),var(--amber-soft) 4px,transparent 4px,transparent 8px);color:var(--amber)}
+.mat td.hit{background:var(--rose-soft);color:#ffd9e0;font-weight:600}
+.mat td.out{color:var(--dim);text-decoration:line-through}
+.mat td.pick{box-shadow:inset 0 0 0 2px var(--amber)}
+.mat input{width:58px;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:5px;font:500 13.5px var(--mono);text-align:center}
+.heat td{width:44px;height:28px;padding:0;border:2px solid var(--bg);background:var(--raised)}
+.heat td.m1{background:var(--amber)}
+.split{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;align-items:start}
+.split>*{min-width:0}
+.arrow{font:500 20px var(--mono);color:var(--maroon-2);align-self:center;text-align:center}
+.cap{font-size:13.5px;color:var(--muted);margin:8px 0 0;max-width:none}
+.big{font:700 1.5rem var(--display);color:var(--fg)}
+.big small{font:500 12px var(--mono);color:var(--muted);letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:2px}
+.stats{display:flex;flex-wrap:wrap;gap:12px 28px;margin:10px 0}
+pre.code{position:relative;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:12px 0 16px;overflow-x:auto;font:400 13.5px/1.65 var(--mono);color:#efe3e5}
+pre.code code{background:none;padding:0;color:inherit;font:inherit}
+pre.code i{color:var(--dim);font-style:normal}
+pre.code .copy{position:absolute;top:8px;right:8px;font:500 11px var(--mono);background:var(--raised);color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:3px 8px;cursor:pointer}
+pre.code .copy:hover{color:var(--fg);border-color:var(--maroon-2)}
+.note{background:var(--amber-soft);border:1px solid rgba(227,176,85,.35);border-radius:10px;padding:12px 16px;margin:14px 0;font-size:14.5px}
+.note b{font:500 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--amber);display:block;margin-bottom:3px}
+.note p{margin:0;max-width:none}
+details.qc{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:0;margin:14px 0}
+details.qc summary{cursor:pointer;padding:12px 16px;font-weight:500;list-style:none}
+details.qc summary::-webkit-details-marker{display:none}
+details.qc summary::before{content:"Quick check";font:500 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--rose);margin-right:12px}
+details.qc[open] summary{border-bottom:1px solid var(--line-soft)}
+details.qc p{padding:12px 16px 2px;color:var(--muted)}
+.stage{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px}
+.stage button,.fwrow{font:500 14px var(--body);color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:10px 16px;cursor:pointer;text-align:left}
+.stage button.on,.fwrow.on{background:var(--maroon);border-color:var(--maroon-2)}
+.stage .go{color:var(--dim);font-family:var(--mono)}
+.fw{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:18px}
+.fw .list{display:flex;flex-direction:column;gap:8px}
+.fwrow{display:flex;justify-content:space-between;gap:10px;width:100%}
+.fwrow span:last-child{color:var(--rose);font-family:var(--mono)}
+.fwout{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:14px 16px;font-size:14.5px;min-height:100%}
+.bar{height:8px;border-radius:4px;background:var(--raised);position:relative;overflow:hidden;min-width:80px}
+.bar i{position:absolute;inset:0 auto 0 0;background:var(--maroon-2);border-radius:4px}
+.bar.amber i{background:var(--amber)}
+.bar.nearest i{background:var(--ok)}
+.chip{display:inline-block;font:500 12px var(--mono);padding:3px 9px;border-radius:6px;background:var(--raised);border:1px solid var(--line);margin:2px 4px 2px 0}
+.chip.keep{background:var(--maroon);border-color:var(--maroon-2);color:#fff}
+.chip.drop{color:var(--dim);text-decoration:line-through}
+.pipe{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch;margin:6px 0 10px}
+.pipe .step{background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:9px 12px;font-size:13px;min-width:110px}
+.pipe .step b{display:block;font:500 13px var(--mono);color:#f6c9d2;margin-bottom:2px}
+.pipe .step small{color:var(--muted)}
+.pipe .step.last{border-color:var(--maroon-2);background:var(--maroon)}
+.pipe .step.last b{color:#fff}
+.pipe .step.last small{color:#f0cdd5}
+.pipe .go{align-self:center;color:var(--dim);font-family:var(--mono)}
+.par{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center}
+svg text{font-family:var(--mono);fill:var(--muted);font-size:11px}
+svg .ink{fill:var(--ink)}
+svg .grid{stroke:var(--line-soft);stroke-width:1}
+svg .ax{stroke:var(--line);stroke-width:1}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;color:var(--muted);margin-top:6px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.two>*{min-width:0}
+.verdict{font:600 13px var(--mono);padding:3px 9px;border-radius:6px;display:inline-block}
+.verdict.bad{background:var(--rose-soft);color:var(--rose)}
+.verdict.good{background:rgba(108,195,155,.15);color:var(--ok)}
+footer.end{margin-top:90px;padding-top:24px;border-top:1px solid var(--line);color:var(--dim);font-size:13.5px}
+@media(max-width:900px){
+  .shell{grid-template-columns:minmax(0,1fr);gap:0;padding-block:0 72px}
+  nav.index{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;flex-direction:row;align-items:center;overflow-x:auto;overflow-y:hidden;max-height:none;background:var(--bg);padding:10px 0;margin-inline:0;border-bottom:1px solid var(--line-soft);gap:6px}
+  nav.index .brand{margin:0 10px 0 0;white-space:nowrap}
+  nav.index a i{display:none}
+  nav.index a.on{box-shadow:none;background:var(--maroon)}
+  .part{scroll-margin-top:64px;padding-top:56px}
+  .fw{grid-template-columns:minmax(0,1fr)}
+  .two,.par{grid-template-columns:minmax(0,1fr)}
+  .arrow{transform:rotate(90deg)}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="shell">
+<nav class="index" aria-label="Sections">
+  <div class="brand">MLP <span>Week 2</span></div>
+  <a href="#sklearn"><i>01</i>sklearn basics</a>
+  <a href="#loading"><i>02</i>Loading data</a>
+  <a href="#basics"><i>03</i>Preprocessing</a>
+  <a href="#extraction"><i>04</i>Feature extraction</a>
+  <a href="#missing"><i>05</i>Missing values</a>
+  <a href="#outliers"><i>06</i>Outliers</a>
+  <a href="#scaling"><i>07</i>Feature scaling</a>
+  <a href="#numeric"><i>08</i>Numeric transforms</a>
+  <a href="#categorical"><i>09</i>Categorical data</a>
+  <a href="#selection"><i>10</i>Feature selection</a>
+  <a href="#pca"><i>11</i>PCA</a>
+  <a href="#recap"><i>12</i>Recap</a>
+</nav>
+
+<main>
+<header class="hero">
+  <p class="eyebrow">Machine Learning Practice · Week 2</p>
+  <h1>Getting data ready for models</h1>
+  <p class="lede">sklearn basics, loading data, and the preprocessing toolkit. Short notes, with things to click.</p>
+  <div class="flow" aria-label="Order of the notes">
+    <a href="#loading">Load</a><span>→</span>
+    <a href="#missing">Fill gaps</a><span>→</span>
+    <a href="#outliers">Handle outliers</a><span>→</span>
+    <a href="#scaling">Scale</a><span>→</span>
+    <a href="#categorical">Encode</a><span>→</span>
+    <a href="#selection">Select</a><span>→</span>
+    <a href="#pca">Reduce</a>
+  </div>
+</header>
+
+<!-- ============ 1 ============ -->
+<section class="part" id="sklearn">
+<header><p class="eyebrow">Part 1</p><h2>sklearn at a glance</h2><p class="lede">One library. One consistent way of using it.</p></header>
+
+<div class="panel">
+  <div class="ptitle"><b>Click a row</b><h3>sklearn follows our ML framework</h3></div>
+  <div class="fw" id="fw">
+    <div class="list">
+      <button class="fwrow" data-k="data" type="button"><span>Training data</span><span>→ data + preprocessing</span></button>
+      <button class="fwrow" data-k="model" type="button"><span>Model, loss, optimizer</span><span>→ the estimator</span></button>
+      <button class="fwrow" data-k="eval" type="button"><span>Evaluation</span><span>→ selection + metrics</span></button>
+      <button class="fwrow" data-k="insp" type="button"><span>Look inside</span><span>→ model inspection</span></button>
+    </div>
+    <div class="fwout" id="fw-out"></div>
+  </div>
+</div>
+
+<h3 class="sub">Five design ideas behind the API</h3>
+<div class="cards">
+  <div class="card"><h4>Consistency</h4><p>Every object has the same simple interface.</p></div>
+  <div class="card"><h4>Inspection</h4><p>Learned parameters and hyperparameters are public attributes.</p></div>
+  <div class="card"><h4>Few classes</h4><p>Data is plain NumPy arrays or SciPy sparse matrices.</p></div>
+  <div class="card"><h4>Composition</h4><p>Build big things by joining small building blocks.</p></div>
+  <div class="card"><h4>Sensible defaults</h4><p>A quick baseline needs almost no settings.</p></div>
+</div>
+
+<h3 class="sub">Three kinds of objects</h3>
+<div class="panel">
+  <div class="stage" id="objs">
+    <button type="button" data-v="t" class="on">Data preprocessing</button><span class="go">→</span>
+    <button type="button" data-v="e">Training</button><span class="go">→</span>
+    <button type="button" data-v="p">Inference</button>
+  </div>
+  <div class="fwout" id="objs-out"></div>
+</div>
+
+<h3 class="sub">Where things live</h3>
+<div class="cards">
+  <div class="card"><div class="kick">Data</div><div class="tags">
+    <span class="tag">datasets</span><span class="tag">preprocessing</span><span class="tag">impute</span><span class="tag">feature_selection</span><span class="tag">feature_extraction</span></div></div>
+  <div class="card"><div class="kick">Models</div><div class="tags">
+    <span class="tag">linear_model</span><span class="tag">svm</span><span class="tag">tree</span><span class="tag">neighbors</span><span class="tag">naive_bayes</span><span class="tag">multiclass</span><span class="tag">multioutput</span><span class="tag">cluster</span></div></div>
+  <div class="card"><div class="kick">Judging them</div><div class="tags">
+    <span class="tag">metrics</span><span class="tag">model_selection</span><span class="tag">inspection</span></div>
+    <p style="margin-top:10px"><code>metrics</code> covers classification, regression and clustering. <code>model_selection</code> has cross-validation, tuning and learning curves.</p></div>
+</div>
+
+<h3 class="sub">Practical advice</h3>
+<ul class="tight">
+  <li>Nobody remembers every API. Remember the modules and the design ideas.</li>
+  <li>Look things up. In a notebook, add <code>?</code> before a name.</li>
+</ul>
+<pre class="code"><code>from sklearn.linear_model import LogisticRegression
+?LogisticRegression</code></pre>
+<div class="tags" style="margin-bottom:6px">
+  <a class="tag" href="https://scikit-learn.org/stable/modules/classes.html" target="_blank" rel="noopener">API reference</a>
+  <a class="tag" href="https://scikit-learn.org/stable/user_guide.html" target="_blank" rel="noopener">User guide</a>
+  <a class="tag" href="https://scikit-learn.org/stable/auto_examples/index.html" target="_blank" rel="noopener">Worked examples</a>
+</div>
+</section>
+
+<!-- ============ 2 ============ -->
+<section class="part" id="loading">
+<header><p class="eyebrow">Part 2</p><h2>Loading data</h2><p class="lede">Three families of dataset helpers, plus tools for your own files.</p></header>
+
+<div class="cards">
+  <div class="card"><div class="kick">load_*</div><h4>Loaders</h4><p>Small classic datasets that ship inside sklearn. No download.</p></div>
+  <div class="card"><div class="kick">fetch_*</div><h4>Fetchers</h4><p>Bigger datasets, downloaded from the internet on first use.</p></div>
+  <div class="card"><div class="kick">make_*</div><h4>Generators</h4><p>Synthetic data you control. Great for testing ideas.</p></div>
+</div>
+
+<div class="split">
+  <div>
+    <h4>Loaders and fetchers return a Bunch</h4>
+    <p class="cap" style="margin-bottom:8px">A dictionary with two keys you care about.</p>
+    <div class="tw"><table><tr><th>Key</th><th>Value</th></tr>
+    <tr><td class="m">data</td><td>array, shape (n, m)</td></tr>
+    <tr><td class="m">target</td><td>array, shape (n,)</td></tr></table></div>
+  </div>
+  <div>
+    <h4>Want plain arrays?</h4>
+    <p class="cap" style="margin-bottom:0">Pass <code>return_X_y=True</code>. Generators always return the tuple <code>(X, y)</code>.</p>
+  </div>
+</div>
+<pre class="code"><code>from sklearn.datasets import load_iris
+
+bunch = load_iris()
+X, y = bunch.data, bunch.target
+
+X, y = load_iris(return_X_y=True)   <i># same thing, shorter</i></code></pre>
+
+<div class="panel">
+  <div class="ptitle"><b>Explore</b><h3>Built-in datasets, by size</h3></div>
+  <div class="row"><div class="seg" id="ds-seg">
+    <button type="button" data-v="all" class="on">All</button><button type="button" data-v="Loader">Loaders</button><button type="button" data-v="Fetcher">Fetchers</button></div></div>
+  <div class="tw"><table id="ds-tbl"></table></div>
+  <p class="cap">Bars use a log scale, so you can see small and large on one axis.</p>
+</div>
+
+<details class="qc"><summary>What does <code>load_iris(return_X_y=True)</code> give you?</summary>
+<p>A tuple of two arrays: X with shape (150, 4) and y with shape (150,).</p></details>
+
+<h3 class="sub">Generators</h3>
+<ul class="tight">
+  <li><code>make_regression</code> builds targets from a sparse random linear mix of features, plus noise.</li>
+  <li><code>make_blobs</code> and <code>make_classification</code> make clusters of points and assign them to classes.</li>
+  <li><code>make_multilabel_classification</code> gives samples with several labels each.</li>
+</ul>
+<div class="panel">
+  <div class="ptitle"><b>Try it</b><h3>make_blobs</h3></div>
+  <div class="row">
+    <label>n_samples <input type="range" id="bl-n" min="30" max="300" step="10" value="150"><output id="bl-no"></output></label>
+    <label>centers <input type="range" id="bl-c" min="1" max="5" step="1" value="3"><output id="bl-co"></output></label>
+    <label>cluster_std <input type="range" id="bl-s" min="0.3" max="2.5" step="0.1" value="1"><output id="bl-so"></output></label>
+  </div>
+  <svg id="bl-svg" viewBox="0 0 560 300" width="100%" role="img" aria-label="Scatter of generated clusters"></svg>
+  <pre class="code" style="margin-bottom:0"><code id="bl-code"></code></pre>
+</div>
+
+<h3 class="sub">Your own files</h3>
+<div class="panel">
+  <div class="ptitle"><b>Pick one</b><h3>What am I loading?</h3></div>
+  <div class="row"><div class="seg" id="ft-seg"></div></div>
+  <div class="fwout" id="ft-out"></div>
+</div>
+<div class="note"><b>Big numeric data</b><p>sklearn suggests an optimised format such as HDF5 to cut load time. pandas, PyTables and h5py can read and write it.</p></div>
+</section>
+
+<!-- ============ 3 ============ -->
+<section class="part" id="basics">
+<header><p class="eyebrow">Part 3</p><h2>Why we preprocess</h2><p class="lede">Real data is rarely clean. Models want tidy numbers.</p></header>
+
+<div class="cards">
+  <div class="card"><div class="kick">Problem</div><h4>Missing values</h4><p>→ <code>impute</code></p></div>
+  <div class="card"><div class="kick">Problem</div><h4>Different scales</h4><p>→ scalers in <code>preprocessing</code></p></div>
+  <div class="card"><div class="kick">Problem</div><h4>Categories as text</h4><p>→ encoders</p></div>
+  <div class="card"><div class="kick">Problem</div><h4>Too many features</h4><p>→ <code>feature_selection</code>, PCA</p></div>
+  <div class="card"><div class="kick">Problem</div><h4>Non-numeric data</h4><p>→ <code>feature_extraction</code></p></div>
+</div>
+<p>First job with new data: explore it and list what needs fixing.</p>
+
+<h3 class="sub">Every transformer has the same three methods</h3>
+<div class="cards">
+  <div class="card"><div class="kick">fit()</div><p>Learns parameters from the <b>training</b> set.</p></div>
+  <div class="card"><div class="kick">transform()</div><p>Applies what was learned to any data.</p></div>
+  <div class="card"><div class="kick">fit_transform()</div><p>Both in one go. Faster and handier.</p></div>
+</div>
+<div class="note"><b>The rule</b><p>The same preprocessing, in the same order, goes on train, validation and test data. Fit on the training data only, then reuse the fitted object on the rest.</p></div>
+<ul class="tight">
+  <li>Cleaning and standardising: <code>sklearn.preprocessing</code>, <code>sklearn.impute</code></li>
+  <li>Feature extraction: <code>sklearn.feature_extraction</code></li>
+  <li>Feature reduction: <code>sklearn.decomposition.PCA</code></li>
+  <li>Feature expansion: <code>sklearn.kernel_approximation</code></li>
+</ul>
+</section>
+
+<!-- ============ 4 ============ -->
+<section class="part" id="extraction">
+<header><p class="eyebrow">Part 4</p><h2>Feature extraction</h2><p class="lede">Turn raw records into a numeric matrix.</p></header>
+
+<h3>DictVectorizer</h3>
+<p>Takes a list of dicts (feature name → value) and returns a matrix. Text values become one-hot columns.</p>
+<div class="panel">
+  <div class="ptitle"><b>Try it</b><h3>List of dicts in, matrix out</h3></div>
+  <div class="row"><label><input type="checkbox" id="dv-text"> add a text feature (<code>'city'</code>)</label></div>
+  <div class="split">
+    <div><pre class="code" style="margin:0"><code id="dv-in"></code></pre></div>
+    <div><div class="tw" id="dv-out"></div></div>
+  </div>
+</div>
+
+<h3 class="sub">FeatureHasher</h3>
+<ul class="tight">
+  <li>Fast and light on memory. It hashes each feature name straight to a column.</li>
+  <li>No lookup table is stored, so there is no <code>inverse_transform</code>.</li>
+  <li>Output is a SciPy sparse matrix.</li>
+</ul>
+<div class="panel">
+  <div class="ptitle"><b>Try it</b><h3>Names land in columns</h3></div>
+  <div class="row"><label>n_features <input type="range" id="fh-n" min="2" max="16" value="8"><output id="fh-no"></output></label></div>
+  <div class="tw" id="fh-out"></div>
+  <p class="cap">Toy hash for illustration. Shrink the width and two names may share a column. That is a collision.</p>
+</div>
+<p>Text and images have their own helpers: <code>feature_extraction.text.*</code> and <code>feature_extraction.image.*</code>. See the sklearn user guide.</p>
+</section>
+
+<!-- ============ 5 ============ -->
+<section class="part" id="missing">
+<header><p class="eyebrow">Part 5</p><h2>Missing values</h2><p class="lede">The absence of data for a record.</p></header>
+
+<div class="cards">
+  <div class="card"><div class="kick">Why it happens</div><p>Human error in entry or transfer. Sensor or machine failure. Corrupted data.</p></div>
+  <div class="card"><div class="kick">Why handle it</div><p>Some algorithms refuse NaN. Ignoring gaps can bias results.</p></div>
+</div>
+
+<h3 class="sub">Step one: find them</h3>
+<p>Missing values do not always look like NaN. Click through the views.</p>
+<div class="panel">
+  <div class="ptitle"><b>Try it</b><h3>Spot the gaps</h3></div>
+  <div class="row"><div class="seg" id="md-seg">
+    <button type="button" data-v="isna" class="on">isna().sum()</button>
+    <button type="button" data-v="uniq">unique()</button>
+    <button type="button" data-v="clean">after cleaning</button>
+    <button type="button" data-v="heat">heatmap</button></div></div>
+  <div class="split">
+    <div class="tw" id="md-tbl"></div>
+    <div><pre class="code" style="margin:0"><code id="md-code"></code></pre><p class="cap" id="md-cap"></p></div>
+  </div>
+</div>
+<ul class="tight">
+  <li><code>df.info()</code> shows non-null counts per column.</li>
+  <li><code>df.isna().sum()</code> counts real NaN only.</li>
+  <li><code>value_counts()</code> or <code>unique()</code> catches strings like <code>?</code>.</li>
+  <li>A seaborn heatmap of <code>df.isna()</code> shows the pattern at a glance.</li>
+</ul>
+<pre class="code"><code>df.replace(['?', '--', 'unknown'], np.nan, inplace=True)</code></pre>
+
+<h3 class="sub">Step two: choose a strategy</h3>
+<div class="cards">
+  <div class="card"><div class="kick">Find it elsewhere</div>
+    <ul class="tight" style="margin:0;padding-left:18px;font-size:14.5px;color:var(--muted)">
+      <li>Age from date of birth</li><li>Weekday, month from a timestamp</li><li>Gender from a title like Mrs.</li><li>Public sources (movies, sports, cars)</li></ul></div>
+  <div class="card"><div class="kick">Drop it</div>
+    <ul class="tight" style="margin:0;padding-left:18px;font-size:14.5px;color:var(--muted)">
+      <li>Big dataset, few rows affected: drop rows</li><li>A column that is mostly empty: drop the column</li></ul>
+    <div class="tags"><span class="tag">df.dropna()</span><span class="tag">df.drop(columns=[...])</span></div></div>
+  <div class="card"><div class="kick">Fill it</div>
+    <ul class="tight" style="margin:0;padding-left:18px;font-size:14.5px;color:var(--muted)">
+      <li>A constant</li><li>Mean, median, most frequent</li><li>Values from similar rows</li></ul>
+    <div class="tags"><span class="tag">SimpleImputer</span><span class="tag">KNNImputer</span></div></div>
+</div>
+
+<h3 class="sub">SimpleImputer</h3>
+<p>Looks at one column at a time. Fills with <code>mean</code>, <code>median</code>, <code>most_frequent</code> or a <code>constant</code>.</p>
+<div class="panel">
+  <div class="ptitle"><b>Try it</b><h3>Edit the matrix, change the strategy</h3></div>
+  <div class="row">
+    <div class="seg" id="si-seg"><button type="button" data-v="mean" class="on">mean</button><button type="button" data-v="median">median</button><button type="button" data-v="most_frequent">most_frequent</button><button type="button" data-v="constant">constant</button></div>
+    <label id="si-fl" hidden>fill_value <input type="number" id="si-fill" value="0" style="width:80px"></label>
+  </div>
+  <div class="split">
+    <div><p class="cap" style="margin-top:0">X (leave a cell empty for NaN)</p><table class="mat" id="si-in"></table></div>
+    <div><p class="cap" style="margin-top:0">Result</p><table class="mat" id="si-out"></table><p class="cap" id="si-cap"></p></div>
+  </div>
+</div>
+
+<h3 class="sub">KNNImputer</h3>
+<ul class="tight">
+  <li>Borrows from the <code>n_neighbors</code> closest rows that have the value.</li>
+  <li>Distance uses only the coordinates both rows have, scaled up by <code>total / present</code>.</li>
+  <li>The fill is the neighbours' average.</li>
+</ul>
+<div class="panel">
+  <div class="ptitle"><b>Try it</b><h3>Who are my nearest neighbours?</h3></div>
+  <div class="row">
+    <div class="seg" id="kn-cell"><button type="button" data-v="0,2" class="on">fill row 1, col 3</button><button type="button" data-v="2,0">fill row 3, col 1</button></div>
+    <div class="seg" id="kn-k"><button type="button" data-v="1">n_neighbors=1</button><button type="button" data-v="2" class="on">n_neighbors=2</button><button type="button" data-v="3">n_neighbors=3</button></div>
+  </div>
+  <div class="split">
+    <div><p class="cap" style="margin-top:0">X</p><table class="mat" id="kn-x"></table></div>
+    <div><p class="cap" style="margin-top:0">After KNNImputer</p><table class="mat" id="kn-y"></table></div>
+  </div>
+  <div class="tw" style="margin-top:14px"><table id="kn-tbl"></table></div>
+  <p class="cap" id="kn-cap"></p>
+</div>
+
+<h3 class="sub">MissingIndicator</h3>
+<p>Sometimes the gap itself is information. Say income is missing in some localities. A new 0/1 column records where, so you can look for a pattern.</p>
+<div class="panel">
+  <div class="ptitle"><b>Try it</b><h3>Is missingness random?</h3></div>
+  <div class="row"><label><input type="checkbox" id="mi-on"> add the indicator column</label></div>
+  <div class="split">
+    <div class="tw" id="mi-tbl"></div>
+    <div id="mi-sum"></div>
+  </div>
+</div>
+<details class="qc"><summary>A text column shows 0 missing in <code>isna().sum()</code>. Is it clean?</summary>
+<p>Not yet. Strings like <code>?</code> or <code>unknown</code> are not NaN. Check <code>unique()</code>, and look at the range for sentinels like age 0.</p></details>
+</section>
+
+<!-- ============ 6 ============ -->
+<section class="part" id="outliers">
+<header><p class="eyebrow">Part 6</p><h2>Outliers</h2><p class="lede">A point that sits far from the rest.</p></header>
+
+<div class="cards">
+  <div class="card"><div class="kick">Example</div><p>Your card is used in one country for months. Suddenly a payment appears abroad.</p></div>
+  <div class="card"><div class="kick">Three causes</div><ul class="tight" style="margin:0;padding-left:18px;font-size:14.5px;color:var(--muted)"><li>Natural variability or measurement</li><li>Data entry errors</li><li>Novel or rare events</li></ul></div>
+  <div class="card"><div class="kick">Why care</div><p>They can distort every statistic and model you build.</p></div>
+</div>
+<div class="note"><b>Handle with care</b><p>Remove a point if it is an error. If it is a real rare event, think before you delete it.</p></div>
+
+<h3 class="sub">Spotting them</h3>
+<ul class="tight">
+  <li><code>describe()</code>: compare min, quartiles and max. A max far above the 75th percentile is a hint.</li>
+  <li>Box plot, histogram: one feature at a time.</li>
+  <li>Scatter plot: two features at once, to catch points that are odd only in combination.</li>
+  <li>Also in sklearn: <code>IsolationForest</code>, <code>LocalOutlierFactor</code>.</li>
+</ul>
+
+<div class="split">
+  <div class="card"><div class="kick">IQR method</div>
+    <p>IQR = Q3 − Q1. Anything outside the fences is an outlier.</p>
+    <p style="font-family:var(--mono);font-size:13px;color:#f6c9d2;margin:6px 0 0">lower = Q1 − 1.5 × IQR<br>upper = Q3 + 1.5 × IQR</p></div>
+  <div class="card"><div class="kick">Z-score method</div>
+    <p>How many standard deviations from the mean. Usually flag |z| &gt; 3.</p>
+    <p style="font-family:var(--mono);font-size:13px;color:#f6c9d2;margin:6px 0 0">z = (x − mean) / std</p>
+    <p style="margin-top:8px">Assumes the data is roughly normal.</p></div>
+</div>
+
+<div class="panel">
+  <div class="ptitle"><b>Try it</b><h3>Move the fences</h3></div>
+  <div class="row">
+    <div class="seg" id="ol-m"><button type="button" data-v="iqr" class="on">IQR</button><button type="button" data-v="z">Z-score</button></div>
+    <label><span id="ol-kl">multiplier</span> <input type="range" id="ol-k" min="0.5" max="3" step="0.25" value="1.5"><output id="ol-ko"></output></label>
+  </div>
+  <svg id="ol-svg" viewBox="0 0 640 220" width="100%" role="img" aria-label="Box plot and strip plot of sample values with outlier fences"></svg>
+  <div class="legend"><span><i style="background:var(--ink)"></i>inlier</span><span><i style="background:var(--rose)"></i>outlier</span><span><i style="background:var(--amber)"></i>fence</span></div>
+  <div class="stats" id="ol-stats"></div>
+  <p class="cap">Sample values, made up to look like a lab measurement with a few extreme readings.</p>
+</div>
+
+<h3 class="sub">What to do about them</h3>
+<div class="panel">
+  <div class="ptitle"><b>Try it</b><h3>Apply a treatment</h3></div>
+  <div class="row"><div class="seg" id="ol-t">
+    <button type="button" data-v="remove" class="on">Remove</button><button type="button" data-v="cap">Cap at fence</button><button type="button" data-v="median">Replace with median</button><button type="button" data-v="log">Log transform</button></div></div>
+  <div class="split">
+    <div class="tw" id="ol-tbl"></div>
+    <div class="fwout" id="ol-tx"></div>
+  </div>
+</div>
+<p>One more option: if there are many far-away points, the data may hold two different groups. Model them separately.</p>
+<pre class="code"><code>q1, q3 = np.percentile(x, [25, 75])
+iqr = q3 - q1
+lower, upper = q1 - 1.5 * iqr, q3 + 1.5 * iqr
+outliers = x[(x &lt; lower) | (x &gt; upper)]
+
+z = (x - x.mean()) / x.std()
+outliers = x[np.abs(z) &gt; 3]</code></pre>
+<details class="qc"><summary>Is every outlier an error?</summary>
+<p>No. A trip abroad is a real transaction. Decide from the cause, not just from the number.</p></details>
+</section>
+
+<!-- ============ 7 ============ -->
+<section class="part" id="scaling">
+<header><p class="eyebrow">Part 7</p><h2>Feature scaling</h2><p class="lede">Put every numeric feature on a comparable scale.</p></header>
+
+<div class="cards">
+  <div class="card"><div class="kick">Loan example</div><p>Age runs 20 to 80. Income runs into lakhs. Left alone, income shouts and age is ignored.</p></div>
+  <div class="card"><div class="kick">The effect</div><p>The model may favour big numbers and misjudge which feature matters.</p></div>
+</div>
+
+<h3 class="sub">Same data, two answers</h3>
+<p>Houses described by age, area, bedrooms, stories, balconies. Who is the nearest neighbour of House 1?</p>
+<div class="panel">
+  <div class="ptitle"><b>Try it</b><h3>KNN distance, raw vs scaled</h3></div>
+  <div class="row"><div class="seg" id="kd-seg"><button type="button" data-v="raw" class="on">Raw</button><button type="button" data-v="std">StandardScaler</button></div></div>
+  <div class="split">
+    <div class="tw" id="kd-data"></div>
+    <div id="kd-dist"></div>
+  </div>
+  <p class="cap" id="kd-cap"></p>
+  <p class="cap">Illustrative numbers. House 2 matches House 1 on everything except area.</p>
+</div>
+
+<h3 class="sub">Faster convergence</h3>
+<p>Gradient descent zigzags when features have very different ranges. Press play.</p>
+<div class="panel">
+  <div class="ptitle"><b>Try it</b><h3>Gradient descent paths</h3></div>
+  <div class="row"><button class="btn" id="gd-play" type="button">Play</button><button class="btn ghost" id="gd-reset" type="button">Reset</button>
+    <label>step <input type="range" id="gd-step" min="0" max="30" value="0"><output id="gd-so"></output></label></div>
+  <div class="two">
+    <div><h4 style="margin-bottom:6px">Unscaled</h4><svg id="gd-a" viewBox="0 0 300 170" width="100%" role="img" aria-label="Zigzag path on elongated contours"></svg><p class="cap" id="gd-ac"></p></div>
+    <div><h4 style="margin-bottom:6px">Scaled</h4><svg id="gd-b" viewBox="0 0 300 170" width="100%" role="img" aria-label="Straight path on round contours"></svg><p class="cap" id="gd-bc"></p></div>
+  </div>
+  <p class="cap">Each run uses a learning rate near the largest stable value for its own contours.</p>
+</div>
+
+<h3 class="sub">The scalers</h3>
+<div class="tw"><table>
+<tr><th>Scaler</th><th>Formula</th><th>Result</th><th>Reach for it when</th></tr>
+<tr><td class="m">StandardScaler</td><td class="m">(x − μ) / σ</td><td>mean 0, std 1</td><td>You want a standard-normal look</td></tr>
+<tr><td class="m">MinMaxScaler</td><td class="m">(x − min) / (max − min)</td><td>range [0, 1]</td><td>You need a fixed range</td></tr>
+<tr><td class="m">MaxAbsScaler</td><td class="m">x / max|x|</td><td>range [−1, 1]</td><td>Sparse features, many zeros</td></tr>
+<tr><td class="m">RobustScaler</td><td class="m">(x − median) / (Q3 − Q1)</td><td>median 0</td><td>Lots of outliers</td></tr>
+</table></div>
+<p class="cap">Standard and MinMax are sensitive to outliers. Each feature gets its own parameters.</p>
+
+<div class="panel">
+  <div class="ptitle"><b>Try it</b><h3>Scaler playground</h3></div>
+  <div class="row">
+    <div class="seg" id="sp-pre"><button type="button" data-v="1, 2, 3, 4, 5" class="on">1 to 5</button><button type="button" data-v="1, 2, 3, 4, 50">With an outlier</button><button type="button" data-v="4, 2, 5, -2, -100">With a negative</button></div>
+    <label>values <input type="text" id="sp-in" value="1, 2, 3, 4, 5"></label>
+  </div>
+  <div class="tw" id="sp-out"></div>
+  <p class="cap" id="sp-cap"></p>
+</div>
+
+<h3 class="sub">Who needs it?</h3>
+<div class="cards">
+  <div class="card"><div class="kick">Yes</div><h4>KNN</h4><p>Big features dominate the distance.</p></div>
+  <div class="card"><div class="kick">Yes</div><h4>SVM with RBF kernel</h4><p>Similarity is built on distance.</p></div>
+  <div class="card"><div class="kick">Yes</div><h4>PCA</h4><p>A wide-range feature looks like high variance.</p></div>
+  <div class="card"><div class="kick">Yes</div><h4>Gradient-based</h4><p>Logistic regression and friends converge faster and smoother.</p></div>
+  <div class="card"><div class="kick">Barely</div><h4>Trees, random forests</h4><p>Each split is a yes/no on one feature.</p></div>
+</div>
+
+<h3 class="sub">Pitfalls</h3>
+<ul class="tight">
+  <li>Scaling does not always help. Try it and check.</li>
+  <li>Scaled values lose real-world meaning. A negative age cannot be explained.</li>
+  <li>There is no single right scaler. Experiment and compare scores.</li>
+  <li>Leakage: learn the parameters from training data only.</li>
+</ul>
+<div class="panel">
+  <div class="ptitle"><b>Try it</b><h3>Avoid data leakage</h3></div>
+  <p class="cap" style="margin-top:-6px">Train = 1, 2, 3, 4, 5. Test = 10, 12.</p>
+  <div class="row"><div class="seg" id="lk-seg"><button type="button" data-v="bad" class="on">fit_transform on test</button><button type="button" data-v="good">transform on test</button></div></div>
+  <div class="split">
+    <div><pre class="code" style="margin:0"><code id="lk-code"></code></pre></div>
+    <div id="lk-out"></div>
+  </div>
+</div>
+<details class="qc"><summary>Which call is allowed on the test set?</summary>
+<p>Only <code>transform()</code>. Parameters were learned from the training set.</p></details>
+<details class="qc"><summary>Do decision trees need scaling?</summary>
+<p>Rarely. They ask yes/no questions about one feature at a time.</p></details>
+</section>
+
+<!-- ============ 8 ============ -->
+<section class="part" id="numeric">
+<header><p class="eyebrow">Part 8</p><h2>More numeric transforms</h2><p class="lede">Reshape numbers to help the model.</p></header>
+
+<h3>FunctionTransformer</h3>
+<p>Apply any function you give it. A log is a common choice for right-skewed data.</p>
+<div class="panel">
+  <div class="ptitle"><b>Try it</b><h3>Pick a function</h3></div>
+  <div class="row"><div class="seg" id="ft2-seg"><button type="button" data-v="log2" class="on">np.log2</button><button type="button" data-v="log10">np.log10</button><button type="button" data-v="sqrt">np.sqrt</button></div></div>
+  <div class="split"><div><p class="cap" style="margin-top:0">X</p><table class="mat" id="fn-x"></table></div><div><p class="cap" style="margin-top:0">X′</p><table class="mat" id="fn-y"></table></div></div>
+</div>
+
+<h3 class="sub">PolynomialFeatures</h3>
+<p>Builds every polynomial combination of the features up to a degree.</p>
+<div class="panel">
+  <div class="ptitle"><b>Try it</b><h3>Expand x₁ and x₂</h3></div>
+  <div class="row"><div class="seg" id="pf-seg"><button type="button" data-v="2" class="on">degree 2</button><button type="button" data-v="3">degree 3</button></div>
+    <label>x₁ <input type="number" id="pf-a" value="2" style="width:70px"></label><label>x₂ <input type="number" id="pf-b" value="3" style="width:70px"></label></div>
+  <div class="tw" id="pf-out"></div>
+  <p class="cap">By default sklearn also adds a column of 1s (the bias).</p>
+</div>
+
+<h3 class="sub">KBinsDiscretizer</h3>
+<p>Cuts a continuous feature into bins, then encodes the bin as a number or one-hot.</p>
+<div class="panel">
+  <div class="ptitle"><b>Try it</b><h3>Choose the bins</h3></div>
+  <div class="row">
+    <label>n_bins <input type="range" id="kb-n" min="2" max="6" value="5"><output id="kb-no"></output></label>
+    <div class="seg" id="kb-s"><button type="button" data-v="uniform" class="on">uniform</button><button type="button" data-v="quantile">quantile</button></div>
+    <div class="seg" id="kb-e"><button type="button" data-v="ordinal" class="on">ordinal</button><button type="button" data-v="onehot">onehot</button></div>
+  </div>
+  <svg id="kb-svg" viewBox="0 0 560 90" width="100%" role="img" aria-label="Number line with bin edges"></svg>
+  <div class="tw" id="kb-out"></div>
+</div>
+</section>
+
+<!-- ============ 9 ============ -->
+<section class="part" id="categorical">
+<header><p class="eyebrow">Part 9</p><h2>Categorical data</h2><p class="lede">Turn labels into numbers a model can use.</p></header>
+<div class="tw"><table>
+<tr><th>Tool</th><th>What it does</th><th>Note</th></tr>
+<tr><td class="m">OneHotEncoder</td><td>One 0/1 column per category</td><td>Exactly one 1 per row</td></tr>
+<tr><td class="m">OrdinalEncoder</td><td>Categories → 0 … K−1, many columns at once</td><td>Implies an order</td></tr>
+<tr><td class="m">LabelEncoder</td><td>Target labels → 0 … K−1</td><td>1D only</td></tr>
+<tr><td class="m">LabelBinarizer</td><td>Multi-class labels → binary columns</td><td>For one-vs-all. Not needed if the model handles multiclass</td></tr>
+<tr><td class="m">MultiLabelBinarizer</td><td>Sets of labels → binary matrix</td><td>Movie genres</td></tr>
+<tr><td class="m">add_dummy_feature</td><td>Adds a column of 1s</td><td>Bias term</td></tr>
+</table></div>
+
+<div class="panel">
+  <div class="ptitle"><b>Try it</b><h3>Encoder playground</h3></div>
+  <div class="row">
+    <div class="seg" id="en-seg"><button type="button" data-v="onehot" class="on">OneHotEncoder</button><button type="button" data-v="ordinal">OrdinalEncoder</button><button type="button" data-v="label">LabelEncoder</button><button type="button" data-v="multi">MultiLabelBinarizer</button></div></div>
+  <div class="row"><label>input <input type="text" id="en-in"></label></div>
+  <div class="tw" id="en-out"></div>
+  <p class="cap" id="en-cap"></p>
+</div>
+</section>
+
+<!-- ============ 10 ============ -->
+<section class="part" id="selection">
+<header><p class="eyebrow">Part 10</p><h2>Feature selection</h2><p class="lede">Drop features that do not help. Smaller data, cheaper training.</p></header>
+
+<div class="split">
+  <div class="card"><div class="kick">Filter</div><p>Score each feature on its own with a statistic.</p>
+    <div class="tags"><span class="tag">VarianceThreshold</span><span class="tag">SelectKBest</span><span class="tag">SelectPercentile</span><span class="tag">GenericUnivariateSelect</span></div></div>
+  <div class="card"><div class="kick">Wrapper</div><p>Use an actual estimator to judge features.</p>
+    <div class="tags"><span class="tag">RFE</span><span class="tag">RFECV</span><span class="tag">SelectFromModel</span><span class="tag">SequentialFeatureSelector</span></div></div>
+</div>
+<p class="cap">Tree-based and kernel-based selection come in later weeks.</p>
+
+<h3 class="sub">Filter: low variance</h3>
+<p><code>VarianceThreshold</code> drops features whose variance is at or below a threshold. The default threshold of 0 removes constant features.</p>
+<div class="panel">
+  <div class="ptitle"><b>Try it</b><h3>Slide the threshold</h3></div>
+  <div class="row"><label>threshold <input type="range" id="vt-t" min="0" max="1.5" step="0.05" value="0"><output id="vt-o"></output></label></div>
+  <div id="vt-out"></div>
+</div>
+
+<h3 class="sub">Filter: univariate selection</h3>
+<ul class="tight">
+  <li><code>SelectKBest</code> keeps the k top-scoring features.</li>
+  <li><code>SelectPercentile</code> keeps the top percentage.</li>
+  <li><code>GenericUnivariateSelect</code> picks the mode: <code>'percentile'</code> (default), <code>'k_best'</code>, <code>'fpr'</code>, <code>'fdr'</code>, <code>'fwe'</code>.</li>
+  <li>Related: <code>SelectFpr</code> (false positive rate), <code>SelectFdr</code> (false discovery rate), <code>SelectFwe</code> (family-wise error).</li>
+</ul>
+<pre class="code"><code>skb = SelectKBest(chi2, k=20)
+X_new = skb.fit_transform(X, y)
+
+gus = GenericUnivariateSelect(chi2, mode='k_best', param=20)
+X_new = gus.fit_transform(X, y)</code></pre>
+<div class="panel">
+  <div class="ptitle"><b>Try it</b><h3>Which scoring function?</h3></div>
+  <div class="row">
+    <div class="seg" id="sc-t"><button type="button" data-v="cls" class="on">Classification</button><button type="button" data-v="reg">Regression</button></div>
+    <label><input type="checkbox" id="sc-nn" checked> features are non-negative</label>
+  </div>
+  <div id="sc-out"></div>
+</div>
+<div class="note"><b>Watch out</b><p>A regression scorer on a classification problem gives useless results.</p></div>
+<ul class="tight">
+  <li><b>Mutual information:</b> dependency between two variables. Never negative. 0 means independent.</li>
+  <li><b>Chi-square:</b> non-negative features (booleans or counts) against a class label. Higher means more related.</li>
+  <li><b>F-statistics:</b> classic test, for both tasks.</li>
+  <li>MI and chi-square suit sparse data.</li>
+</ul>
+
+<h3 class="sub">Wrapper: RFE and RFECV</h3>
+<ul class="tight">
+  <li>Fit an estimator on all features. Read the importances.</li>
+  <li>Remove the weakest. Repeat until you reach the number you want.</li>
+  <li><code>RFECV</code> does this inside cross-validation, so it finds the number for you.</li>
+</ul>
+<div class="panel">
+  <div class="ptitle"><b>Try it</b><h3>Eliminate one at a time</h3></div>
+  <div class="row"><label>keep <input type="range" id="rfe-n" min="1" max="7" value="3"><output id="rfe-no"></output> features</label>
+    <button class="btn" id="rfe-step" type="button">Remove weakest</button><button class="btn ghost" id="rfe-reset" type="button">Reset</button></div>
+  <div id="rfe-out"></div>
+</div>
+
+<h3 class="sub">Wrapper: SelectFromModel</h3>
+<ul class="tight">
+  <li>One fit. Keeps features whose importance beats a threshold.</li>
+  <li>Importance comes from <code>coef_</code> or <code>feature_importances_</code>.</li>
+  <li>Threshold: a number, or <code>'mean'</code>, <code>'median'</code>, <code>'0.1*mean'</code>.</li>
+</ul>
+<pre class="code"><code>clf = LinearSVC(C=0.01, penalty="l1", dual=False).fit(X, y)
+model = SelectFromModel(clf, prefit=True)
+X_new = model.transform(X)    <i># keeps non-zero coefficients</i></code></pre>
+
+<h3 class="sub">Wrapper: sequential selection</h3>
+<ul class="tight">
+  <li><b>Forward:</b> start empty, add the feature that gives the best cross-validation score, repeat.</li>
+  <li><b>Backward:</b> start full, remove features one by one.</li>
+  <li>Does not need <code>coef_</code>. Slower, since it fits many more models.</li>
+</ul>
+<div class="panel">
+  <div class="ptitle"><b>Try it</b><h3>Forward or backward?</h3></div>
+  <div class="row"><label>pick <input type="range" id="sf-k" min="1" max="9" value="7"><output id="sf-ko"></output> of 10 features</label></div>
+  <div id="sf-out"></div>
+</div>
+<details class="qc"><summary>Chi-square needs what kind of feature values?</summary>
+<p>Non-negative ones, such as counts or booleans. It works for classification only.</p></details>
+</section>
+
+<!-- ============ 12 ============ -->
+<section class="part" id="pca">
+<header><p class="eyebrow">Part 11</p><h2>PCA</h2><p class="lede">Fewer features, most of the information.</p></header>
+<ul class="tight">
+  <li>A linear method. It uses SVD to project data to fewer dimensions.</li>
+  <li>The first principal component points where the data varies most.</li>
+  <li>Each next one is at right angles to the earlier ones and captures less.</li>
+  <li>Keep the first k that cover the variance you want.</li>
+  <li>Scale first, or large-range features will lead.</li>
+</ul>
+<div class="panel">
+  <div class="ptitle"><b>Try it</b><h3>Rotate the line, watch the variance</h3></div>
+  <div class="row">
+    <label>angle <input type="range" id="pc-a" min="0" max="179" value="95"><output id="pc-ao"></output>°</label>
+    <button class="btn" id="pc-snap" type="button">Snap to PC1</button>
+    <label><input type="checkbox" id="pc-proj" checked> show projections</label></div>
+  <div class="split">
+    <svg id="pc-svg" viewBox="0 0 420 320" width="100%" role="img" aria-label="Scatter with a rotating projection line"></svg>
+    <div id="pc-out"></div>
+  </div>
+</div>
+<pre class="code"><code>pca = PCA(n_components=2)
+X_small = pca.fit_transform(X_scaled)
+pca.explained_variance_ratio_</code></pre>
+</section>
+
+<!-- ============ 14 ============ -->
+<section class="part" id="recap">
+<header><p class="eyebrow">Part 12</p><h2>Recap</h2><p class="lede">Problem on the left, tool on the right.</p></header>
+<div class="tw"><table>
+<tr><th>You see</th><th>Reach for</th></tr>
+<tr><td>Small practice dataset</td><td class="m">load_*, fetch_*, make_*</td></tr>
+<tr><td>Dicts or text/image data</td><td class="m">DictVectorizer, FeatureHasher, feature_extraction</td></tr>
+<tr><td>Gaps in the data</td><td class="m">dropna, SimpleImputer, KNNImputer, MissingIndicator</td></tr>
+<tr><td>Extreme values</td><td class="m">IQR, z-score, then remove, cap, median or log</td></tr>
+<tr><td>Features on different scales</td><td class="m">StandardScaler, MinMaxScaler, MaxAbsScaler, RobustScaler</td></tr>
+<tr><td>Skewed or curved relationships</td><td class="m">FunctionTransformer, PolynomialFeatures, KBinsDiscretizer</td></tr>
+<tr><td>Text categories</td><td class="m">OneHotEncoder, OrdinalEncoder, LabelEncoder</td></tr>
+<tr><td>Too many features</td><td class="m">VarianceThreshold, SelectKBest, RFE, SelectFromModel, PCA</td></tr>
+</table></div>
+
+<h3 class="sub">Common slips</h3>
+<ul class="tight">
+  <li>Calling <code>fit</code> on test data.</li>
+  <li>Deleting a real rare event because it looked odd.</li>
+  <li>Trusting <code>isna()</code> when missing values hide as strings.</li>
+  <li>Using a regression scorer for a classification target.</li>
+  <li>Treating one scaler as the answer for every dataset.</li>
+</ul>
+</section>
+
+<footer class="end">MLP · Week 2 notes</footer>
+</main>
+</div>
+<script>
+(function(){
+'use strict';
+/* ---------- helpers ---------- */
+const $=(s,r)=>(r||document).querySelector(s);
+const $$=(s,r)=>Array.from((r||document).querySelectorAll(s));
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const isN=x=>typeof x==='number'&&Number.isNaN(x);
+const f=(x,d)=>{d=d==null?2:d;if(x==null||isN(x))return 'NaN';const v=+(+x).toFixed(d);return Object.is(v,-0)?'0':String(v)};
+const mean=a=>a.reduce((x,y)=>x+y,0)/a.length;
+const std=a=>{const m=mean(a);return Math.sqrt(mean(a.map(x=>(x-m)*(x-m))))};
+const quantile=(arr,q)=>{const s=arr.slice().sort((a,b)=>a-b);const p=(s.length-1)*q,lo=Math.floor(p),hi=Math.ceil(p);return s[lo]+(s[hi]-s[lo])*(p-lo)};
+const rng=a=>()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+const gauss=r=>{let u=0;while(u===0)u=r();const v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)};
+function seg(id,cb){
+  const root=$(id),bs=$$('button',root);
+  const set=v=>bs.forEach(b=>{const on=b.dataset.v===v;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on?'true':'false')});
+  bs.forEach(b=>b.addEventListener('click',()=>{set(b.dataset.v);cb(b.dataset.v)}));
+  const cur=(bs.find(b=>b.classList.contains('on'))||bs[0]);
+  set(cur.dataset.v);
+  return {set,get:()=>(bs.find(b=>b.classList.contains('on'))||bs[0]).dataset.v};
+}
+function mat(rows,opt){
+  opt=opt||{};
+  let h='<table class="mat">';
+  if(opt.head)h+='<tr>'+opt.head.map(x=>'<th>'+esc(x)+'</th>').join('')+'</tr>';
+  rows.forEach((r,i)=>{h+='<tr>'+r.map((v,j)=>{const c=opt.cls?opt.cls(i,j,v):'';const t=opt.fmt?opt.fmt(v,i,j):(typeof v==='number'?f(v):esc(v));return '<td class="'+(c||'')+'">'+t+'</td>'}).join('')+'</tr>'});
+  return h+'</table>';
+}
+
+/* ---------- copy buttons ---------- */
+$$('pre.code').forEach(pre=>{
+  const code=pre.querySelector('code');
+  const b=document.createElement('button');b.type='button';b.className='copy';b.textContent='Copy';
+  b.addEventListener('click',()=>{
+    const fin=t=>{b.textContent=t;setTimeout(()=>{b.textContent='Copy'},1400)};
+    const fb=()=>{try{const r=document.createRange();r.selectNodeContents(code);const s=window.getSelection();s.removeAllRanges();s.addRange(r);fin('Press Ctrl+C')}catch(e){fin('Select text')}};
+    try{navigator.clipboard.writeText(code.innerText).then(()=>fin('Copied'),fb)}catch(e){fb()}
+  });
+  pre.appendChild(b);
+});
+
+/* ---------- nav highlight ---------- */
+try{
+  const links=$$('nav.index a');
+  const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){links.forEach(l=>l.classList.toggle('on',l.getAttribute('href')==='#'+e.target.id))}})},{rootMargin:'-15% 0px -75% 0px'});
+  links.forEach(a=>{const s=$(a.getAttribute('href'));if(s)io.observe(s)});
+}catch(e){}
+
+/* ---------- 1. framework + objects ---------- */
+(function(){
+  const info={
+    data:'<h4>Training data and preprocessing</h4><p style="margin-top:6px">Load, generate, clean and reshape data.</p><div class="tags"><span class="tag">datasets</span><span class="tag">preprocessing</span><span class="tag">impute</span><span class="tag">feature_selection</span><span class="tag">feature_extraction</span></div>',
+    model:'<h4>The estimator is the model</h4><p style="margin-top:6px">In sklearn, the model already includes its loss function and optimisation procedure. You pick the estimator and call <code>fit</code>.</p><div class="tags"><span class="tag">linear_model</span><span class="tag">svm</span><span class="tag">tree</span><span class="tag">neighbors</span></div>',
+    eval:'<h4>Model selection and evaluation</h4><p style="margin-top:6px">Score predictions, cross-validate, tune hyperparameters, plot learning curves.</p><div class="tags"><span class="tag">metrics</span><span class="tag">model_selection</span></div>',
+    insp:'<h4>Model inspection</h4><p style="margin-top:6px">Tools to look inside a fitted model and understand it.</p><div class="tags"><span class="tag">inspection</span></div>'
+  };
+  const rows=$$('#fw .fwrow'),out=$('#fw-out');
+  rows.forEach(r=>r.addEventListener('click',()=>{rows.forEach(x=>x.classList.toggle('on',x===r));out.innerHTML=info[r.dataset.k]}));
+  rows[0].click();
+  const oi={
+    t:'<h4>Transformers</h4><p style="margin-top:6px">Change the dataset.</p><div class="tags"><span class="tag hot">fit()</span><span class="tag hot">transform()</span><span class="tag hot">fit_transform()</span></div><p class="cap">Examples: SimpleImputer, StandardScaler, OneHotEncoder, PCA.</p>',
+    e:'<h4>Estimators</h4><p style="margin-top:6px">Learn model parameters from training data and hyperparameters.</p><div class="tags"><span class="tag hot">fit()</span></div><p class="cap">Examples: LinearRegression, SVC, KNeighborsClassifier.</p>',
+    p:'<h4>Predictors</h4><p style="margin-top:6px">Make predictions on a dataset and measure their quality.</p><div class="tags"><span class="tag hot">predict()</span><span class="tag hot">score()</span></div><p class="cap">A fitted estimator is usually a predictor too.</p>'
+  };
+  const o=$('#objs-out');
+  seg('#objs',v=>{o.innerHTML=oi[v]});o.innerHTML=oi.t;
+})();
+
+/* ---------- 2. datasets ---------- */
+(function(){
+  const DS=[
+    ['load_iris','Loader',150,4,'1','Classification'],['load_diabetes','Loader',442,10,'1','Regression'],
+    ['load_digits','Loader',1797,64,'1','Classification'],['load_linnerud','Loader',20,3,'3','Multi-output regression'],
+    ['load_wine','Loader',178,13,'1','Classification'],['load_breast_cancer','Loader',569,30,'1','Classification'],
+    ['fetch_olivetti_faces','Fetcher',400,4096,'1 (40 classes)','Image classification'],['fetch_20newsgroups','Fetcher',18846,1,'1 (20 classes)','Text classification'],
+    ['fetch_lfw_people','Fetcher',13233,5828,'1 (5749 classes)','Image classification'],['fetch_covtype','Fetcher',581012,54,'1 (7 classes)','Classification'],
+    ['fetch_rcv1','Fetcher',804414,47236,'1 (103 classes)','Classification'],['fetch_kddcup99','Fetcher',4898431,41,'1','Classification'],
+    ['fetch_california_housing','Fetcher',20640,8,'1','Regression']];
+  const t=$('#ds-tbl'),maxL=Math.log10(5000000);
+  function draw(v){
+    let h='<tr><th>Function</th><th class="n">Samples (n)</th><th class="n">Features (m)</th><th>Labels</th><th>Task</th><th>Size</th></tr>';
+    DS.filter(d=>v==='all'||d[1]===v).forEach(d=>{
+      const w=Math.max(4,Math.log10(d[2])/maxL*100);
+      h+='<tr><td class="m">'+d[0]+'</td><td class="n">'+d[2].toLocaleString('en-IN')+'</td><td class="n">'+d[3].toLocaleString('en-IN')+'</td><td>'+d[4]+'</td><td>'+d[5]+'</td><td style="min-width:110px"><div class="bar'+(d[1]==='Fetcher'?' amber':'')+'"><i style="width:'+w.toFixed(0)+'%"></i></div></td></tr>';
+    });
+    t.innerHTML=h;
+  }
+  seg('#ds-seg',draw);draw('all');
+})();
+
+/* blobs */
+(function(){
+  const r=rng(5),base=[];for(let i=0;i<300;i++)base.push([gauss(r),gauss(r)]);
+  const cs=[[-6,-3],[5,4],[-1,6],[7,-4],[-7,5]],cols=['#e8566f','#e3b055','#6cc39b','#7aa7e0','#c79be0'];
+  const n=$('#bl-n'),c=$('#bl-c'),s=$('#bl-s'),svg=$('#bl-svg');
+  function draw(){
+    const N=+n.value,C=+c.value,S=+s.value;
+    $('#bl-no').textContent=N;$('#bl-co').textContent=C;$('#bl-so').textContent=S.toFixed(1);
+    const W=560,H=300,sx=W/24,sy=H/16;let h='';
+    for(let x=-12;x<=12;x+=4)h+='<line class="grid" x1="'+((x+12)*sx)+'" y1="0" x2="'+((x+12)*sx)+'" y2="'+H+'"/>';
+    for(let y=-8;y<=8;y+=4)h+='<line class="grid" x1="0" y1="'+(H-(y+8)*sy)+'" x2="'+W+'" y2="'+(H-(y+8)*sy)+'"/>';
+    for(let i=0;i<N;i++){const k=i%C,x=cs[k][0]+S*base[i][0],y=cs[k][1]+S*base[i][1];
+      h+='<circle cx="'+((x+12)*sx).toFixed(1)+'" cy="'+(H-(y+8)*sy).toFixed(1)+'" r="3.4" fill="'+cols[k]+'" fill-opacity=".85"/>'}
+    svg.innerHTML=h;
+    $('#bl-code').textContent='X, y = make_blobs(n_samples='+N+', centers='+C+', cluster_std='+S.toFixed(1)+')\n# X.shape -> ('+N+', 2)    y.shape -> ('+N+',)';
+  }
+  [n,c,s].forEach(e=>e.addEventListener('input',draw));draw();
+})();
+
+/* file chooser */
+(function(){
+  const F=[
+    ['CSV, Excel, JSON, SQL','pandas.io','Common table formats.','df = pd.read_csv("data.csv")'],
+    ['Numeric columns','numpy loadtxt','Columnar data straight into a NumPy array.','X = np.loadtxt("data.txt")'],
+    ['.mat, .arff','scipy.io','Binary formats used in scientific computing.','mat = scipy.io.loadmat("data.mat")'],
+    ['Folders of text','datasets.load_files','Folder name is the label, each file is a sample.','bunch = load_files("texts/")'],
+    ['SVMlight / LibSVM','datasets.load_svmlight_file','Sparse format.','X, y = load_svmlight_file("data.svm")'],
+    ['Images, video','skimage.io','Loads into NumPy arrays.','img = skimage.io.imread("photo.png")'],
+    ['WAV audio','scipy.io.wavfile.read','Reads a WAV file into an array.','rate, data = scipy.io.wavfile.read("a.wav")'],
+    ['Public ML data','datasets.fetch_openml','Fetches from openml.org, a public repository for ML data and experiments.','bunch = fetch_openml("mnist_784")'],
+    ['HDF5','pandas / PyTables / h5py','Optimised format for big numeric data. Cuts load time.','df = pd.read_hdf("data.h5")']];
+  const root=$('#ft-seg');root.innerHTML=F.map((x,i)=>'<button type="button" data-v="'+i+'"'+(i===0?' class="on"':'')+'>'+esc(x[0])+'</button>').join('');
+  const o=$('#ft-out');
+  function show(v){const x=F[+v];o.innerHTML='<h4>'+esc(x[1])+'</h4><p style="margin:6px 0">'+esc(x[2])+'</p><pre class="code" style="margin:0"><code>'+esc(x[3])+'</code></pre>'}
+  seg('#ft-seg',show);show(0);
+  $$('pre.code',o).forEach(()=>{});
+})();
+
+/* ---------- 4. extraction ---------- */
+(function(){
+  const base=[{age:4,height:96.0},{age:1,height:73.9},{age:3,height:88.9},{age:2,height:81.6}];
+  const cities=['Delhi','Pune','Delhi','Goa'];
+  const cb=$('#dv-text');
+  function draw(){
+    const withT=cb.checked;
+    const data=base.map((d,i)=>withT?Object.assign({},d,{city:cities[i]}):d);
+    const py=d=>'{'+Object.keys(d).map(k=>"'"+k+"': "+(typeof d[k]==='string'?"'"+d[k]+"'":(k==='height'?d[k].toFixed(1):d[k]))).join(', ')+'}';
+    $('#dv-in').textContent='data = [\n'+data.map(d=>'  '+py(d)).join(',\n')+'\n]\n\ndv = DictVectorizer(sparse=False)\ndv.fit_transform(data)';
+    const cats=withT?Array.from(new Set(cities)).sort():[];
+    const head=['age','height'].concat(cats.map(c=>'city='+c));
+    const rows=data.map((d,i)=>[d.age,d.height].concat(cats.map(c=>d.city===c?1:0)));
+    $('#dv-out').innerHTML=mat(rows,{head:head,fmt:(v,i,j)=>j===1?f(v,1):String(v)});
+  }
+  cb.addEventListener('change',draw);draw();
+  const sl=$('#fh-n');
+  const hash=(s,n)=>{let h=7;for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))%1000003;return h%n};
+  function dh(){
+    const n=+sl.value;$('#fh-no').textContent=n;
+    const names=['age','height','weight','city=Delhi','city=Pune','city=Goa'];
+    const slots={};names.forEach(x=>{const k=hash(x,n);(slots[k]=slots[k]||[]).push(x)});
+    let h='<table><tr><th>Feature name</th><th class="n">hash mod '+n+'</th><th>Column</th></tr>';
+    names.forEach(x=>{const k=hash(x,n);h+='<tr><td class="m">'+esc(x)+'</td><td class="n">'+k+'</td><td>'+(slots[k].length>1?'<span class="verdict bad">column '+k+' (shared)</span>':'column '+k)+'</td></tr>'});
+    $('#fh-out').innerHTML=h+'</table>';
+  }
+  sl.addEventListener('input',dh);dh();
+})();
+
+/* ---------- 5. missing ---------- */
+(function(){
+  const cols=['roll_no','age','state','score'];
+  const rows=[[101,21,'Delhi',78],[102,NaN,'Pune',65],[103,'?','--',71],[104,23,' ',NaN],[105,0,'Delhi',82],[106,22,'unknown',-1],[107,NaN,'Goa',69],[108,24,'Goa',NaN]];
+  const PH=['?','--',' ','unknown'];
+  const kind=(j,v)=>{if(isN(v))return 'nan';if(typeof v==='string'&&PH.indexOf(v)>=0)return 'str';if((j===1&&v===0)||(j===3&&v===-1))return 'sent';return 'ok'};
+  const show=v=>isN(v)?'NaN':(v===' '?'␣':String(v));
+  const view={cur:'isna'};
+  function counts(test){return cols.map((c,j)=>rows.filter(r=>test(kind(j,r[j]))).length)}
+  function lines(cs){return cols.map((c,j)=>(c+'          ').slice(0,10)+cs[j]).join('\n')}
+  function draw(){
+    const v=view.cur;let html;
+    if(v==='heat'){
+      html='<table class="mat heat"><tr>'+cols.map(c=>'<th>'+c.replace('_no','')+'</th>').join('')+'</tr>'+rows.map(r=>'<tr>'+r.map((x,j)=>'<td class="'+(kind(j,x)!=='ok'?'m1':'')+'"></td>').join('')+'</tr>').join('')+'</table>';
+    }else{
+      html=mat(rows,{head:cols,fmt:show,cls:(i,j,x)=>{const k=kind(j,x);
+        if(v==='isna')return k==='nan'?'hit':(k==='nan'?'':'');
+        if(v==='uniq')return k==='str'?'str':(k==='sent'?'sent':(k==='nan'?'nan':''));
+        if(v==='clean')return k!=='ok'?'hit':'';return ''}});
+    }
+    $('#md-tbl').innerHTML=html;
+    let code,cap;
+    if(v==='isna'){code='df.isna().sum()\n\n'+lines(counts(k=>k==='nan'));cap='Only true NaN counted. The state column says 0, yet it has junk.'}
+    else if(v==='uniq'){code="df['state'].unique()\n['Delhi' 'Pune' '--' ' ' 'unknown' 'Goa']\n\ndf.describe()  # min age 0, min score -1";cap='Amber: strings that mean "missing". Striped: sentinel values like age 0 or score −1.'}
+    else if(v==='clean'){code="df.replace(['?','--',' ','unknown'], np.nan)\ndf.loc[df.age==0,'age'] = np.nan\ndf.loc[df.score==-1,'score'] = np.nan\n\ndf.isna().sum()\n\n"+lines(counts(k=>k!=='ok'));cap='Now every gap is a real NaN and the counts are honest.'}
+    else{code='sns.heatmap(df.isna(), cbar=False)';cap='Each yellow cell is missing data (after cleaning). A quick picture of how much, and where.'}
+    $('#md-code').textContent=code;$('#md-cap').textContent=cap;
+  }
+  seg('#md-seg',v=>{view.cur=v;draw()});draw();
+})();
+
+/* simple imputer */
+(function(){
+  const X0=[[7,1],[NaN,8],[2,NaN],[9,6]];
+  const inT=$('#si-in'),outT=$('#si-out'),fill=$('#si-fill'),fl=$('#si-fl');
+  inT.innerHTML=X0.map((r,i)=>'<tr>'+r.map((v,j)=>'<td><input type="text" data-i="'+i+'" data-j="'+j+'" value="'+(isN(v)?'':v)+'" aria-label="row '+(i+1)+' col '+(j+1)+'"></td>').join('')+'</tr>').join('');
+  let strat='mean';
+  const parse=s=>{s=s.trim().toLowerCase();if(s===''||s==='nan')return NaN;const x=parseFloat(s);return Number.isNaN(x)?NaN:x};
+  function stat(vals){
+    if(strat==='constant'){const c=parseFloat(fill.value);return Number.isNaN(c)?0:c}
+    const v=vals.filter(x=>!isN(x));if(!v.length)return NaN;
+    if(strat==='mean')return mean(v);
+    if(strat==='median')return quantile(v,.5);
+    const m=new Map();v.forEach(x=>m.set(x,(m.get(x)||0)+1));
+    let best=NaN,bc=0;Array.from(m.entries()).sort((a,b)=>a[0]-b[0]).forEach(e=>{if(e[1]>bc){best=e[0];bc=e[1]}});return best;
+  }
+  function draw(){
+    const X=[0,1,2,3].map(i=>[0,1].map(j=>parse($('input[data-i="'+i+'"][data-j="'+j+'"]',inT).value)));
+    const fills=[0,1].map(j=>stat(X.map(r=>r[j])));
+    outT.innerHTML=X.map(r=>'<tr>'+r.map((v,j)=>isN(v)?'<td class="fill">'+f(fills[j])+'</td>':'<td>'+f(v)+'</td>').join('')+'</tr>').join('');
+    $('#si-cap').textContent='Fill value per column: ['+fills.map(x=>f(x)).join(', ')+']';
+  }
+  $$('input',inT).forEach(e=>e.addEventListener('input',draw));
+  fill.addEventListener('input',draw);
+  seg('#si-seg',v=>{strat=v;fl.hidden=v!=='constant';draw()});draw();
+})();
+
+/* knn imputer */
+(function(){
+  const X=[[1,2,NaN],[3,4,3],[NaN,6,5],[8,8,7]];
+  let sel='0,2',k=2;
+  const dist=(a,b)=>{let s=0,p=0;for(let j=0;j<a.length;j++)if(!isN(a[j])&&!isN(b[j])){s+=(a[j]-b[j])*(a[j]-b[j]);p++}return p?{d:Math.sqrt(a.length/p*s),p:p}:{d:NaN,p:0}};
+  function imp(i,j,kk){
+    const c=[];X.forEach((r,t)=>{if(t===i||isN(r[j]))return;const d=dist(X[i],r);if(!isN(d.d))c.push({t:t,d:d.d,p:d.p})});
+    c.sort((a,b)=>a.d-b.d||a.t-b.t);
+    const use=c.slice(0,kk);return {c:c,use:use,v:mean(use.map(o=>X[o.t][j]))};
+  }
+  function draw(){
+    const ij=sel.split(',').map(Number),i=ij[0],j=ij[1];
+    $('#kn-x').innerHTML=mat(X,{head:['c1','c2','c3'],fmt:v=>isN(v)?'NaN':String(v),cls:(r,c,v)=>isN(v)?(r===i&&c===j?'nan pick':'nan'):''}).replace(/^<table class="mat">|<\/table>$/g,'');
+    const Y=X.map((r,a)=>r.map((v,b)=>isN(v)?imp(a,b,k).v:v));
+    $('#kn-y').innerHTML=mat(Y,{head:['c1','c2','c3'],cls:(a,b)=>isN(X[a][b])?'fill':''}).replace(/^<table class="mat">|<\/table>$/g,'');
+    const r=imp(i,j,k);
+    let h='<tr><th>Donor row</th><th>Values</th><th class="n">Coords shared</th><th class="n">Weight</th><th class="n">Distance</th><th>Picked</th></tr>';
+    r.c.forEach(o=>{const used=r.use.some(u=>u.t===o.t);
+      h+='<tr><td>Row '+(o.t+1)+'</td><td class="m">['+X[o.t].map(v=>isN(v)?'nan':v).join(', ')+']</td><td class="n">'+o.p+'</td><td class="n">3/'+o.p+' = '+f(3/o.p)+'</td><td class="n">'+f(o.d)+'</td><td>'+(used?'<span class="verdict good">yes</span>':'')+'</td></tr>'});
+    $('#kn-tbl').innerHTML=h;
+    $('#kn-cap').textContent='Filling row '+(i+1)+', col '+(j+1)+': average of column '+(j+1)+' from rows '+r.use.map(o=>o.t+1).join(' and ')+' = ('+r.use.map(o=>X[o.t][j]).join(' + ')+') / '+r.use.length+' = '+f(r.v);
+  }
+  seg('#kn-cell',v=>{sel=v;draw()});seg('#kn-k',v=>{k=+v;draw()});draw();
+})();
+
+/* missing indicator */
+(function(){
+  const loc=['North','North','South','South','East','East','West','West'];
+  const inc=[52,NaN,48,51,NaN,NaN,60,58];
+  const cb=$('#mi-on');
+  function draw(){
+    const on=cb.checked;
+    $('#mi-tbl').innerHTML=mat(loc.map((l,i)=>on?[l,inc[i],isN(inc[i])?1:0]:[l,inc[i]]),{head:on?['locality','income (₹k)','income_missing']:['locality','income (₹k)'],fmt:(v,i,j)=>j===1?(isN(v)?'NaN':String(v)):String(v),cls:(i,j,v)=>(j===1&&isN(v))?'nan':(j===2&&v===1?'hit':'')});
+    const ls=['North','South','East','West'];
+    $('#mi-sum').innerHTML=on?'<p class="cap" style="margin-top:0">Share missing, by locality</p>'+ls.map(l=>{const idx=loc.map((x,i)=>x===l?i:-1).filter(i=>i>=0);const m=idx.filter(i=>isN(inc[i])).length/idx.length;
+      return '<div style="display:grid;grid-template-columns:64px 1fr 44px;gap:10px;align-items:center;margin:6px 0"><span style="font-size:13.5px">'+l+'</span><div class="bar'+(m>0.5?'':' amber')+'"><i style="width:'+(m*100)+'%"></i></div><span class="n" style="font:500 13px var(--mono)">'+Math.round(m*100)+'%</span></div>'}).join('')+'<p class="cap">East is missing the most. The gaps are not random, and that is a clue.</p>':'<p class="cap" style="margin-top:0">Turn on the indicator to see where income goes missing.</p>';
+  }
+  cb.addEventListener('change',draw);draw();
+})();
+
+/* ---------- 6. outliers ---------- */
+(function(){
+  const r=rng(11),D=[];
+  for(let i=0;i<70;i++)D.push(Math.max(70,Math.round(98+11*gauss(r))));
+  D.push(134,139,151,162);
+  const svg=$('#ol-svg'),kEl=$('#ol-k');
+  let method='iqr',treat='remove';
+  const jit=i=>((i*37)%100)/100;
+  function calc(){
+    const k=+kEl.value;
+    if(method==='iqr'){const q1=quantile(D,.25),q3=quantile(D,.75),iqr=q3-q1;return {lo:q1-k*iqr,hi:q3+k*iqr,q1:q1,q3:q3,iqr:iqr,k:k}}
+    const m=mean(D),s=std(D);return {lo:m-k*s,hi:m+k*s,m:m,s:s,k:k,q1:quantile(D,.25),q3:quantile(D,.75),iqr:quantile(D,.75)-quantile(D,.25)};
+  }
+  function drawChart(c){
+    const W=640,L=24,R=616,mn=Math.floor((Math.min.apply(null,D)-6)/10)*10,mx=Math.ceil((Math.max.apply(null,D)+6)/10)*10;
+    const X=v=>L+(v-mn)/(mx-mn)*(R-L);
+    let h='';
+    for(let t=mn;t<=mx;t+=10){h+='<line class="grid" x1="'+X(t)+'" y1="16" x2="'+X(t)+'" y2="188"/><text x="'+X(t)+'" y="206" text-anchor="middle">'+t+'</text>'}
+    const wk=method==='iqr'?c.k:1.5,wlo=c.q1-wk*c.iqr,whi=c.q3+wk*c.iqr;
+    const ins=D.filter(v=>v>=wlo&&v<=whi),a=Math.min.apply(null,ins),b=Math.max.apply(null,ins);
+    h+='<line stroke="#b6a3a7" stroke-width="1.5" x1="'+X(a)+'" y1="40" x2="'+X(c.q1)+'" y2="40"/><line stroke="#b6a3a7" stroke-width="1.5" x1="'+X(c.q3)+'" y1="40" x2="'+X(b)+'" y2="40"/>';
+    h+='<line stroke="#b6a3a7" stroke-width="1.5" x1="'+X(a)+'" y1="32" x2="'+X(a)+'" y2="48"/><line stroke="#b6a3a7" stroke-width="1.5" x1="'+X(b)+'" y1="32" x2="'+X(b)+'" y2="48"/>';
+    h+='<rect x="'+X(c.q1)+'" y="26" width="'+(X(c.q3)-X(c.q1))+'" height="28" rx="3" fill="#7a1230" stroke="#a31a3e"/><line stroke="#f4ece9" stroke-width="2" x1="'+X(quantile(D,.5))+'" y1="26" x2="'+X(quantile(D,.5))+'" y2="54"/>';
+    [c.lo,c.hi].forEach((v,i)=>{h+='<line stroke="#e3b055" stroke-width="1.5" stroke-dasharray="5 4" x1="'+X(v)+'" y1="16" x2="'+X(v)+'" y2="188"/><text x="'+(X(v)+(i?4:-4))+'" y="14" text-anchor="'+(i?'start':'end')+'" style="fill:#e3b055">'+f(v,1)+'</text>'});
+    D.forEach((v,i)=>{const o=v<c.lo||v>c.hi;h+='<circle cx="'+X(v).toFixed(1)+'" cy="'+(78+jit(i)*96).toFixed(1)+'" r="'+(o?5:3.6)+'" fill="'+(o?'#e8566f':'#d9c7cb')+'" fill-opacity="'+(o?1:.6)+'"/>'});
+    svg.innerHTML=h;
+  }
+  function draw(){
+    const c=calc(),k=c.k;
+    $('#ol-ko').textContent=f(k);$('#ol-kl').textContent=method==='iqr'?'multiplier on IQR':'z threshold';
+    drawChart(c);
+    const out=D.filter(v=>v<c.lo||v>c.hi);
+    $('#ol-stats').innerHTML=(method==='iqr'
+      ?'<div class="big"><small>Q1 / Q3</small>'+f(c.q1,1)+' / '+f(c.q3,1)+'</div><div class="big"><small>IQR</small>'+f(c.iqr,1)+'</div><div class="big"><small>Fences</small>'+f(c.lo,1)+' to '+f(c.hi,1)+'</div>'
+      :'<div class="big"><small>Mean / std</small>'+f(c.m,1)+' / '+f(c.s,1)+'</div><div class="big"><small>Fences</small>'+f(c.lo,1)+' to '+f(c.hi,1)+'</div>')
+      +'<div class="big" style="color:var(--rose)"><small>Outliers</small>'+out.length+' of '+D.length+'</div>'
+      +(method==='z'?'<p class="cap" style="width:100%;margin:0">The outliers inflate the mean and std themselves, so z can miss some that IQR catches.</p>':'');
+    treatDraw(c,out);
+  }
+  function treatDraw(c,out){
+    const med=quantile(D,.5);let T;
+    if(treat==='remove')T=D.filter(v=>v>=c.lo&&v<=c.hi);
+    else if(treat==='cap')T=D.map(v=>Math.min(c.hi,Math.max(c.lo,v)));
+    else if(treat==='median')T=D.map(v=>(v<c.lo||v>c.hi)?med:v);
+    else T=D.map(v=>Math.log(v));
+    const row=(n,a)=>'<tr><td>'+n+'</td><td class="n">'+a[0]+'</td><td class="n">'+a[1]+'</td></tr>';
+    const st=A=>[f(A.length,0),f(mean(A),2),f(std(A),2),f(Math.max.apply(null,A),2)];
+    const A=st(D),B=st(T);
+    $('#ol-tbl').innerHTML='<table><tr><th></th><th class="n">Before</th><th class="n">After</th></tr>'+row('Count',[A[0],B[0]])+row('Mean',[A[1],B[1]])+row('Std',[A[2],B[2]])+row('Max',[A[3],B[3]])+'</table>';
+    const tx={remove:'<h4>Remove</h4><p style="margin-top:6px">Quick analysis, or when the outliers are entry errors. Come back to them later.</p>',
+      cap:'<h4>Cap</h4><p style="margin-top:6px">Replace extreme values with the fence value. Good when you do not care how far out they are.</p>',
+      median:'<h4>Replace with median</h4><p style="margin-top:6px">The mean is pulled by outliers. The median is not.</p>',
+      log:'<h4>Log transform</h4><p style="margin-top:6px">Applied to every value. Helps with right-skewed data by dampening the extremes.</p>'};
+    $('#ol-tx').innerHTML=tx[treat]+(out.length===0&&treat!=='log'?'<p class="cap">No outliers at this setting, so nothing changes.</p>':'');
+  }
+  seg('#ol-m',v=>{method=v;if(v==='iqr'){kEl.min='0.5';kEl.max='3';kEl.value='1.5'}else{kEl.min='1';kEl.max='4';kEl.value='3'}draw()});
+  seg('#ol-t',v=>{treat=v;draw()});
+  kEl.addEventListener('input',draw);draw();
+})();
+
+/* ---------- 7. scaling ---------- */
+(function(){
+  const H=[[20,8900,4,2,3],[20,7800,4,2,3],[35,3000,2,1,1],[40,9000,6,4,5],[10,4500,3,1,2]];
+  const names=['age','area','bedrooms','stories','balconies'];
+  let mode='raw';
+  function scaled(){const cols=names.map((n,j)=>{const c=H.map(r=>r[j]);return {m:mean(c),s:std(c)||1}});return H.map(r=>r.map((v,j)=>(v-cols[j].m)/cols[j].s))}
+  function draw(){
+    const D=mode==='raw'?H:scaled();
+    $('#kd-data').innerHTML=mat(D.map((r,i)=>['House '+(i+1)].concat(r)),{head:[''].concat(names),fmt:(v,i,j)=>j===0?v:(mode==='raw'?String(v):f(v))});
+    const d=[1,2,3,4].map(i=>Math.sqrt(D[0].reduce((s,v,j)=>s+(v-D[i][j])*(v-D[i][j]),0)));
+    const mx=Math.max.apply(null,d),mn=Math.min.apply(null,d);
+    $('#kd-dist').innerHTML='<p class="cap" style="margin-top:0">Distance from House 1</p>'+d.map((v,i)=>'<div style="display:grid;grid-template-columns:62px 1fr 64px;gap:10px;align-items:center;margin:8px 0"><span style="font-size:13.5px">House '+(i+2)+'</span><div class="bar'+(v===mn?' nearest':'')+'"><i style="width:'+(v/mx*100)+'%"></i></div><span style="font:500 13px var(--mono);text-align:right">'+f(v,mode==='raw'?0:2)+'</span></div>').join('');
+    const near=d.indexOf(mn)+2;
+    $('#kd-cap').innerHTML='Nearest neighbour: <b style="color:var(--ok)">House '+near+'</b>. '+(mode==='raw'?'Area is in the thousands, so it swamps everything else. House 4 looks closest though it differs in age, bedrooms and stories.':'With every feature on the same footing, the house that differs only in area comes out nearest.');
+  }
+  seg('#kd-seg',v=>{mode=v;draw()});draw();
+})();
+
+/* gradient descent */
+(function(){
+  function sim(a,b,lr){const pts=[[4,1.2]];let x=4,y=1.2;for(let i=0;i<200;i++){x-=lr*2*a*x;y-=lr*2*b*y;pts.push([x,y]);if(a*x*x+b*y*y<0.05)break}return pts}
+  const A=sim(1,16,0.05),B=sim(1,1,0.4);
+  const maxS=Math.max(A.length,B.length)-1;
+  const st=$('#gd-step'),so=$('#gd-so'),play=$('#gd-play');st.max=maxS;
+  const sc=28,cx=150,cy=85;
+  function panel(svg,pts,a,b,s){
+    let h='';
+    [1,4,9,16,25].forEach(c=>{h+='<ellipse cx="'+cx+'" cy="'+cy+'" rx="'+(Math.sqrt(c/a)*sc)+'" ry="'+(Math.sqrt(c/b)*sc)+'" fill="none" stroke="#3a1c24" stroke-width="1.2"/>'});
+    h+='<line class="ax" x1="0" y1="'+cy+'" x2="300" y2="'+cy+'"/><line class="ax" x1="'+cx+'" y1="0" x2="'+cx+'" y2="170"/>';
+    const n=Math.min(s,pts.length-1),P=pts.slice(0,n+1).map(p=>(cx+p[0]*sc).toFixed(1)+','+(cy-p[1]*sc).toFixed(1));
+    h+='<polyline fill="none" stroke="#e8566f" stroke-width="1.8" points="'+P.join(' ')+'"/>';
+    pts.slice(0,n+1).forEach((p,i)=>{h+='<circle cx="'+(cx+p[0]*sc).toFixed(1)+'" cy="'+(cy-p[1]*sc).toFixed(1)+'" r="'+(i===n?4.5:2.2)+'" fill="'+(i===n?'#fff':'#e8566f')+'"/>'});
+    h+='<circle cx="'+cx+'" cy="'+cy+'" r="3" fill="#e3b055"/>';
+    svg.innerHTML=h;
+  }
+  function draw(){
+    const s=+st.value;so.textContent=s;
+    panel($('#gd-a'),A,1,16,s);panel($('#gd-b'),B,1,1,s);
+    $('#gd-ac').textContent='Steps to reach the minimum: '+(A.length-1);
+    $('#gd-bc').textContent='Steps to reach the minimum: '+(B.length-1);
+  }
+  let timer=null;
+  function stop(){if(timer){clearInterval(timer);timer=null}play.textContent='Play'}
+  play.addEventListener('click',()=>{
+    if(timer){stop();return}
+    if(+st.value>=maxS)st.value=0;
+    play.textContent='Pause';
+    timer=setInterval(()=>{if(+st.value>=maxS){stop();return}st.value=+st.value+1;draw()},180);
+  });
+  $('#gd-reset').addEventListener('click',()=>{stop();st.value=0;draw()});
+  st.addEventListener('input',()=>{stop();draw()});draw();
+})();
+
+/* scaler playground */
+(function(){
+  const inp=$('#sp-in');
+  function draw(){
+    const x=inp.value.split(',').map(s=>parseFloat(s.trim())).filter(v=>!Number.isNaN(v));
+    if(x.length<2){$('#sp-out').innerHTML='<p class="cap">Enter at least two numbers.</p>';return}
+    const m=mean(x),s=std(x)||1,mn=Math.min.apply(null,x),mx=Math.max.apply(null,x),rg=(mx-mn)||1,ma=Math.max.apply(null,x.map(Math.abs))||1;
+    const md=quantile(x,.5),q1=quantile(x,.25),q3=quantile(x,.75),iq=(q3-q1)||1;
+    const C=[x.map(v=>(v-m)/s),x.map(v=>(v-mn)/rg),x.map(v=>v/ma),x.map(v=>(v-md)/iq)];
+    const heads=['StandardScaler','MinMaxScaler','MaxAbsScaler','RobustScaler'];
+    const mxs=C.map(c=>Math.max.apply(null,c.map(Math.abs))||1);
+    let h='<table><tr><th class="n">x</th>'+heads.map(t=>'<th class="n">'+t+'</th>').join('')+'</tr>';
+    x.forEach((v,i)=>{h+='<tr><td class="n">'+f(v)+'</td>'+C.map((c,j)=>'<td class="n" style="background:linear-gradient(90deg,rgba(163,26,62,.35) '+(Math.abs(c[i])/mxs[j]*100).toFixed(0)+'%,transparent 0)">'+f(c[i])+'</td>').join('')+'</tr>'});
+    h+='<tr><td style="color:var(--muted);font-size:12.5px">learns</td><td class="n" style="font-size:12.5px;color:var(--muted)">μ='+f(m)+', σ='+f(s)+'</td><td class="n" style="font-size:12.5px;color:var(--muted)">min='+f(mn)+', max='+f(mx)+'</td><td class="n" style="font-size:12.5px;color:var(--muted)">max|x|='+f(ma)+'</td><td class="n" style="font-size:12.5px;color:var(--muted)">med='+f(md)+', Q1='+f(q1)+', Q3='+f(q3)+'</td></tr></table>';
+    $('#sp-out').innerHTML=h;
+    $('#sp-cap').textContent=(mx>5*q3&&q3>0)?'One big value squeezes the rest in Standard and MinMax. Robust keeps the middle spread out.':'Bars show size within each column. MinMax stays in [0, 1], MaxAbs in [−1, 1].';
+  }
+  seg('#sp-pre',v=>{inp.value=v;draw()});inp.addEventListener('input',draw);draw();
+})();
+
+/* leakage */
+(function(){
+  const tr=[1,2,3,4,5],te=[10,12];
+  function draw(v){
+    const bad=v==='bad';
+    const m=bad?mean(te):mean(tr),s=bad?std(te):std(tr);
+    $('#lk-code').textContent=bad
+      ?'scaler = StandardScaler()\nX_train_s = scaler.fit_transform(X_train)\nX_test_s  = scaler.fit_transform(X_test)   # refits on test'
+      :'scaler = StandardScaler()\nX_train_s = scaler.fit_transform(X_train)\nX_test_s  = scaler.transform(X_test)       # reuse train μ, σ';
+    $('#lk-out').innerHTML='<span class="verdict '+(bad?'bad':'good')+'">'+(bad?'leak':'correct')+'</span><p class="cap">Parameters used on test: μ = '+f(m)+', σ = '+f(s)+'</p>'
+      +mat([te.map(x=>f((x-m)/s))],{head:['test 10','test 12']})
+      +'<p class="cap">'+(bad?'Test values look centred, but they were measured against the test set itself. The model never sees how far they sit from training data.':'Test values are far above the training range, and the scaled numbers show it.')+'</p>';
+  }
+  seg('#lk-seg',draw);draw('bad');
+})();
+
+/* ---------- 8. numeric ---------- */
+(function(){
+  const X=[[128,2],[2,256],[4,1],[512,64]];
+  const fnm={log2:Math.log2,log10:Math.log10,sqrt:Math.sqrt};
+  seg('#ft2-seg',v=>{
+    $('#fn-x').innerHTML=mat(X).replace(/^<table class="mat">|<\/table>$/g,'');
+    $('#fn-y').innerHTML=mat(X.map(r=>r.map(fnm[v]))).replace(/^<table class="mat">|<\/table>$/g,'');
+  });
+  $('#fn-x').innerHTML=mat(X).replace(/^<table class="mat">|<\/table>$/g,'');
+  $('#fn-y').innerHTML=mat(X.map(r=>r.map(Math.log2))).replace(/^<table class="mat">|<\/table>$/g,'');
+  /* poly */
+  let deg=2;
+  const sup=n=>n===1?'':(n===2?'²':'³');
+  function pd(){
+    const a=parseFloat($('#pf-a').value)||0,b=parseFloat($('#pf-b').value)||0;
+    const terms=[];
+    for(let d=1;d<=deg;d++)for(let i=d;i>=0;i--){const j=d-i;terms.push({n:(i?'x₁'+sup(i):'')+(j?'x₂'+sup(j):''),v:Math.pow(a,i)*Math.pow(b,j)})}
+    $('#pf-out').innerHTML=mat([terms.map(t=>t.v)],{head:terms.map(t=>t.n),fmt:v=>f(v)});
+  }
+  seg('#pf-seg',v=>{deg=+v;pd()});$('#pf-a').addEventListener('input',pd);$('#pf-b').addEventListener('input',pd);pd();
+  /* kbins */
+  const V=[0,0.125,0.25,0.375,0.5,0.625,0.75,0.875,1];
+  let strat='uniform',enc='ordinal';const nEl=$('#kb-n');
+  function kb(){
+    const n=+nEl.value;$('#kb-no').textContent=n;
+    const mn=0,mx=1;let edges=[];
+    if(strat==='uniform')for(let i=0;i<=n;i++)edges.push(mn+(mx-mn)*i/n);else for(let i=0;i<=n;i++)edges.push(quantile(V,i/n));
+    const idx=V.map(x=>{let c=0;for(let i=1;i<n;i++)if(x>=edges[i]-1e-12)c++;return c});
+    const pal=['#e8566f','#e3b055','#6cc39b','#7aa7e0','#c79be0','#d9c7cb'];
+    let h='<line class="ax" x1="20" y1="46" x2="540" y2="46"/>';
+    edges.forEach((e,i)=>{const x=20+e*520;h+='<line stroke="#e3b055" stroke-dasharray="4 3" x1="'+x+'" y1="22" x2="'+x+'" y2="70"/><text x="'+x+'" y="84" text-anchor="middle">'+f(e,2)+'</text>'});
+    V.forEach((x,i)=>{h+='<circle cx="'+(20+x*520)+'" cy="46" r="6" fill="'+pal[idx[i]]+'"/>'});
+    $('#kb-svg').innerHTML=h;
+    let t='<table><tr><th class="n">x</th><th class="n">bin</th>'+(enc==='onehot'?'<th>one-hot</th>':'')+'</tr>';
+    V.forEach((x,i)=>{t+='<tr><td class="n">'+f(x,3)+'</td><td class="n"><span style="color:'+pal[idx[i]]+'">●</span> '+idx[i]+'</td>'+(enc==='onehot'?'<td class="m">['+Array.from({length:n},(_,k)=>k===idx[i]?1:0).join(', ')+']</td>':'')+'</tr>'});
+    $('#kb-out').innerHTML=t+'</table>';
+  }
+  nEl.addEventListener('input',kb);seg('#kb-s',v=>{strat=v;kb()});seg('#kb-e',v=>{enc=v;kb()});kb();
+})();
+
+/* ---------- 9. encoders ---------- */
+(function(){
+  const defs={onehot:'1, 2, 3, 1',ordinal:'low, high, medium, low',label:'1, 2, 6, 1, 8, 6',multi:'action, comedy; comedy; action, thriller; science-fiction, action, thriller'};
+  const inp=$('#en-in');let mode='onehot';
+  const sorted=a=>{const u=Array.from(new Set(a));const num=u.every(x=>x!==''&&!Number.isNaN(+x));return u.sort((p,q)=>num?(+p)-(+q):p.localeCompare(q))};
+  const split=s=>s.split(',').map(x=>x.trim()).filter(Boolean);
+  function draw(){
+    const raw=inp.value;let h='',cap='';
+    if(mode==='multi'){
+      const sets=raw.split(';').map(split).filter(a=>a.length);
+      const cl=sorted([].concat.apply([],sets));
+      h=mat(sets.map(s=>cl.map(c=>s.indexOf(c)>=0?1:0)),{head:cl,cls:(i,j,v)=>v?'hit':''});
+      cap='Rows are separated by semicolons. Columns follow sorted class order.';
+    }else{
+      const v=split(raw);if(!v.length){$('#en-out').innerHTML='';return}
+      const cl=sorted(v);
+      if(mode==='onehot'){h=mat(v.map(x=>cl.map(c=>x===c?1:0)),{head:cl.map(c=>'x='+c),cls:(i,j,z)=>z?'hit':''});cap='K = '+cl.length+' unique values, so '+cl.length+' columns. Exactly one 1 per row.'}
+      else{const m={};cl.forEach((c,i)=>m[c]=i);h=mat(v.map(x=>[x,m[x]]),{head:['input',mode==='ordinal'?'code':"y′"]});cap='Mapping: '+cl.map((c,i)=>c+' → '+i).join(', ')+'.'+(mode==='ordinal'?' Codes follow alphabetical order, not meaning. Pass categories= to set your own order.':' LabelEncoder is for 1D target labels.')}
+    }
+    $('#en-out').innerHTML=h;$('#en-cap').textContent=cap;
+  }
+  seg('#en-seg',v=>{mode=v;inp.value=defs[v];draw()});inp.value=defs.onehot;inp.addEventListener('input',draw);draw();
+})();
+
+/* ---------- 10. selection ---------- */
+(function(){
+  const V=[['f1',0],['f2',0.02],['f3',0.4],['f4',1.3],['f5',2.8]],t=$('#vt-t');
+  function draw(){
+    const th=+t.value;$('#vt-o').textContent=th.toFixed(2);
+    $('#vt-out').innerHTML=V.map(v=>{const keep=v[1]>th;return '<div style="display:grid;grid-template-columns:36px 1fr 110px;gap:10px;align-items:center;margin:7px 0"><span class="m" style="font-family:var(--mono);font-size:13px">'+v[0]+'</span><div class="bar'+(keep?'':' amber')+'"><i style="width:'+(v[1]/3*100)+'%"></i></div><span style="font:500 13px var(--mono)">var '+v[1].toFixed(2)+' '+(keep?'<span class="verdict good">keep</span>':'<span class="verdict bad">drop</span>')+'</span></div>'}).join('');
+  }
+  t.addEventListener('input',draw);draw();
+  /* scorer */
+  let task='cls';const nn=$('#sc-nn');
+  function sc(){
+    const L=task==='cls'?[['f_classif','F-statistic',true],['mutual_info_classif','Mutual information',true],['chi2','Chi-square',nn.checked]]:[['f_regression','F-statistic',true],['mutual_info_regression','Mutual information',true],['chi2','Chi-square',false]];
+    $('#sc-out').innerHTML=L.map(x=>'<span class="chip'+(x[2]?' keep':' drop')+'">'+x[0]+'</span>').join('')+'<p class="cap">'+(task==='reg'?'Chi-square is for classification only.':(nn.checked?'All three work. Chi-square needs non-negative features (counts or booleans).':'Chi-square is out, since it needs non-negative features.'))+'</p>';
+  }
+  seg('#sc-t',v=>{task=v;sc()});nn.addEventListener('change',sc);sc();
+  /* rfe */
+  const F=[['area',0.9],['bedrooms',0.55],['age',0.4],['stories',0.3],['balcony',0.15],['parking',0.12],['colour',0.05],['house_no',0.02]];
+  let alive=F.map(x=>x[0]);const nEl=$('#rfe-n');
+  function rf(){
+    const tgt=+nEl.value;$('#rfe-no').textContent=tgt;
+    $('#rfe-out').innerHTML=F.map(x=>{const on=alive.indexOf(x[0])>=0;return '<div style="display:grid;grid-template-columns:86px 1fr 62px;gap:10px;align-items:center;margin:7px 0;opacity:'+(on?1:.4)+'"><span style="font-family:var(--mono);font-size:13px'+(on?'':';text-decoration:line-through')+'">'+x[0]+'</span><div class="bar"><i style="width:'+(x[1]*100)+'%"></i></div><span style="font:500 12px var(--mono);color:var(--muted)">'+(on?x[1].toFixed(2):'out')+'</span></div>'}).join('')+'<p class="cap">'+(alive.length>tgt?alive.length+' features left. Importances come from the estimator and are refit every round.':'Reached '+tgt+' features.')+'</p>';
+    $('#rfe-step').disabled=alive.length<=tgt;
+  }
+  $('#rfe-step').addEventListener('click',()=>{if(alive.length<=+nEl.value)return;const w=F.filter(x=>alive.indexOf(x[0])>=0).sort((a,b)=>a[1]-b[1])[0];alive=alive.filter(a=>a!==w[0]);rf()});
+  $('#rfe-reset').addEventListener('click',()=>{alive=F.map(x=>x[0]);rf()});
+  nEl.addEventListener('input',()=>{alive=F.map(x=>x[0]);rf()});rf();
+  /* sfs */
+  const kEl=$('#sf-k');
+  function sf(){
+    const k=+kEl.value,m=10,fw=k,bw=m-k;$('#sf-ko').textContent=k;
+    $('#sf-out').innerHTML=[['Forward',fw,fw<=bw],['Backward',bw,bw<fw]].map(x=>'<div style="display:grid;grid-template-columns:80px 1fr 90px;gap:10px;align-items:center;margin:8px 0"><span style="font-size:13.5px">'+x[0]+'</span><div class="bar'+(x[2]?' nearest':'')+'"><i style="width:'+(x[1]/9*100)+'%"></i></div><span style="font:500 13px var(--mono)">'+x[1]+' rounds</span></div>').join('')+'<p class="cap">'+(fw<bw?'Forward is cheaper here.':(bw<fw?'Backward is cheaper here.':'Equal.'))+' Each round with k-fold cross-validation fits many models, so fewer rounds saves real time.</p>';
+  }
+  kEl.addEventListener('input',sf);sf();
+})();
+
+/* ---------- 12. pca ---------- */
+(function(){
+  const r=rng(21),P=[];for(let i=0;i<110;i++){const x=gauss(r)*2.4,y=0.55*x+gauss(r)*0.75;P.push([x,y])}
+  const mx=mean(P.map(p=>p[0])),my=mean(P.map(p=>p[1]));P.forEach(p=>{p[0]-=mx;p[1]-=my});
+  let cxx=0,cyy=0,cxy=0;P.forEach(p=>{cxx+=p[0]*p[0];cyy+=p[1]*p[1];cxy+=p[0]*p[1]});cxx/=P.length;cyy/=P.length;cxy/=P.length;
+  const tot=cxx+cyy;
+  const pc1=((0.5*Math.atan2(2*cxy,cxx-cyy)*180/Math.PI)%180+180)%180;
+  const a=$('#pc-a'),svg=$('#pc-svg'),pj=$('#pc-proj');
+  const varAt=deg=>{const t=deg*Math.PI/180,c=Math.cos(t),s=Math.sin(t);return cxx*c*c+2*cxy*c*s+cyy*s*s};
+  function draw(){
+    const deg=+a.value;$('#pc-ao').textContent=deg;
+    const sc=26,cx=210,cy=160,t=deg*Math.PI/180,c=Math.cos(t),s=Math.sin(t);
+    let h='<line class="ax" x1="0" y1="'+cy+'" x2="420" y2="'+cy+'"/><line class="ax" x1="'+cx+'" y1="0" x2="'+cx+'" y2="320"/>';
+    P.forEach(p=>{const d=p[0]*c+p[1]*s,qx=d*c,qy=d*s;
+      if(pj.checked)h+='<line stroke="#7a1230" stroke-opacity=".7" x1="'+(cx+p[0]*sc).toFixed(1)+'" y1="'+(cy-p[1]*sc).toFixed(1)+'" x2="'+(cx+qx*sc).toFixed(1)+'" y2="'+(cy-qy*sc).toFixed(1)+'"/>';});
+    h+='<line stroke="#e3b055" stroke-width="2" x1="'+(cx-c*7.4*sc)+'" y1="'+(cy+s*7.4*sc)+'" x2="'+(cx+c*7.4*sc)+'" y2="'+(cy-s*7.4*sc)+'"/>';
+    P.forEach(p=>{h+='<circle cx="'+(cx+p[0]*sc).toFixed(1)+'" cy="'+(cy-p[1]*sc).toFixed(1)+'" r="3.2" fill="#d9c7cb" fill-opacity=".75"/>'});
+    if(pj.checked)P.forEach(p=>{const d=p[0]*c+p[1]*s;h+='<circle cx="'+(cx+d*c*sc).toFixed(1)+'" cy="'+(cy-d*s*sc).toFixed(1)+'" r="2.6" fill="#e8566f"/>'});
+    svg.innerHTML=h;
+    const v1=varAt(deg)/tot,v2=1-v1;
+    $('#pc-out').innerHTML='<p class="cap" style="margin-top:0">Variance captured by the line</p><div class="big" style="font-size:2.2rem;color:'+(v1>0.9?'var(--ok)':'var(--fg)')+'">'+(v1*100).toFixed(1)+'%</div><div class="bar" style="margin:8px 0 14px"><i style="width:'+(v1*100)+'%"></i></div><p class="cap">Left behind (the perpendicular direction): '+(v2*100).toFixed(1)+'%</p><p class="cap">'+(Math.abs(deg-pc1)<3?'This is PC1. It keeps the most variance. PC2 is perpendicular to it.':'Rotate the line. The best angle is the first principal component.')+'</p>';
+  }
+  a.addEventListener('input',draw);pj.addEventListener('change',draw);
+  $('#pc-snap').addEventListener('click',()=>{a.value=Math.round(pc1);draw()});draw();
+})();
+})();
+</script>
+</body>
+</html>
